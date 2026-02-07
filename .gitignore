@@ -10,3 +10,6 @@ public/
 .env.development
 .env.test
 .env.production
+playwright-report/
+test-results/
+tsconfig.tsbuildinfo 

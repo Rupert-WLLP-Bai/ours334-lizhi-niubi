@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
+import Image from "next/image";
 import {
   Play,
   Pause,
@@ -11,11 +11,13 @@ import {
   ChevronDown,
   Heart,
   MoreHorizontal,
+  ListMusic,
+  Volume2,
   Repeat,
   Shuffle,
-  ListMusic,
 } from "lucide-react";
-import { parseLyrics, findCurrentLyric, formatTime, LyricLine } from "@/lib/lyrics";
+import { parseLyrics, formatTime, LyricLine } from "@/lib/lyrics";
+import { Lyrics } from "@/components";
 
 interface Song {
   id: string;
@@ -41,17 +43,18 @@ export default function PlayerPage() {
   const [album, setAlbum] = useState<Album | null>(null);
   const [song, setSong] = useState<Song | null>(null);
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
-  const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [viewMode, setViewMode] = useState<"cover" | "lyrics">("cover");
+  const [repeatMode, setRepeatMode] = useState<"off" | "one" | "all">("off");
+  const [isShuffle, setIsShuffle] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  const lyricsContainerRef = useRef<HTMLDivElement>(null);
 
-  // Load album data
+  // Load data
   useEffect(() => {
     fetch("/api/songs")
       .then((res) => res.json())
@@ -71,7 +74,10 @@ export default function PlayerPage() {
 
   // Load lyrics
   useEffect(() => {
-    if (!song?.lyricPath) return;
+    if (!song?.lyricPath) {
+      setLyrics([]);
+      return;
+    }
 
     fetch(song.lyricPath)
       .then((res) => res.json())
@@ -79,29 +85,23 @@ export default function PlayerPage() {
         const parsed = parseLyrics(data.lyrics || "");
         setLyrics(parsed);
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error("Failed to load lyrics:", err);
+        setLyrics([]);
+      });
   }, [song?.lyricPath]);
 
-  // Audio event handlers
+  // Audio handlers
   const handleTimeUpdate = useCallback(() => {
     if (audioRef.current) {
-      const time = audioRef.current.currentTime;
-      setCurrentTime(time);
-      const index = findCurrentLyric(lyrics, time);
-      setCurrentLyricIndex(index);
+      setCurrentTime(audioRef.current.currentTime);
     }
-  }, [lyrics]);
+  }, []);
 
   const handleLoadedMetadata = useCallback(() => {
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
     }
-  }, []);
-
-  const handleEnded = useCallback(() => {
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setCurrentLyricIndex(-1);
   }, []);
 
   const togglePlay = () => {
@@ -115,42 +115,38 @@ export default function PlayerPage() {
     }
   };
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value);
+  const handleSeek = (time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       setCurrentTime(time);
     }
   };
 
-  const skipForward = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = Math.min(
-        audioRef.current.currentTime + 10,
-        duration
-      );
-    }
-  };
-
-  const skipBackward = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = Math.max(
-        audioRef.current.currentTime - 10,
-        0
-      );
-    }
-  };
-
-  const playNext = () => {
+  const playNext = useCallback(() => {
     if (!album) return;
+    
+    if (isShuffle) {
+      const randomIndex = Math.floor(Math.random() * album.songs.length);
+      const nextSong = album.songs[randomIndex];
+      router.push(
+        `/player/${encodeURIComponent(album.name)}/${encodeURIComponent(nextSong.title)}`
+      );
+      return;
+    }
+
     const currentIndex = album.songs.findIndex((s) => s.title === songTitle);
     if (currentIndex < album.songs.length - 1) {
       const nextSong = album.songs[currentIndex + 1];
       router.push(
         `/player/${encodeURIComponent(album.name)}/${encodeURIComponent(nextSong.title)}`
       );
+    } else if (repeatMode === "all") {
+      const nextSong = album.songs[0];
+      router.push(
+        `/player/${encodeURIComponent(album.name)}/${encodeURIComponent(nextSong.title)}`
+      );
     }
-  };
+  }, [album, songTitle, isShuffle, repeatMode, router]);
 
   const playPrev = () => {
     if (!album) return;
@@ -160,24 +156,32 @@ export default function PlayerPage() {
       router.push(
         `/player/${encodeURIComponent(album.name)}/${encodeURIComponent(prevSong.title)}`
       );
+    } else if (repeatMode === "all") {
+      const prevSong = album.songs[album.songs.length - 1];
+      router.push(
+        `/player/${encodeURIComponent(album.name)}/${encodeURIComponent(prevSong.title)}`
+      );
     }
   };
 
-  // Scroll to current lyric
-  useEffect(() => {
-    if (currentLyricIndex >= 0 && lyricsContainerRef.current) {
-      const lyricElements = lyricsContainerRef.current.querySelectorAll(
-        "[data-lyric-index]"
-      );
-      const currentElement = lyricElements[currentLyricIndex] as HTMLElement;
-      if (currentElement) {
-        currentElement.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
+  const handleEnded = () => {
+    if (repeatMode === "one") {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
       }
+    } else {
+      playNext();
     }
-  }, [currentLyricIndex]);
+  };
+
+  const toggleRepeat = () => {
+    setRepeatMode((prev) => {
+      if (prev === "off") return "all";
+      if (prev === "all") return "one";
+      return "off";
+    });
+  };
 
   if (loading) {
     return (
@@ -196,8 +200,21 @@ export default function PlayerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Audio element */}
+    <div className="relative min-h-screen bg-black text-white overflow-hidden flex flex-col font-sans">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 z-0">
+        {album.coverPath && (
+          <Image
+            src={album.coverPath}
+            alt="background"
+            fill
+            unoptimized
+            className="object-cover opacity-40 blur-[100px] scale-150 transition-all duration-1000"
+          />
+        )}
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+
       <audio
         ref={audioRef}
         src={song.audioPath}
@@ -206,175 +223,233 @@ export default function PlayerPage() {
         onEnded={handleEnded}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        autoPlay
       />
 
       {/* Header */}
-      <header className="sticky top-0 z-20 px-4 py-3 flex items-center justify-between backdrop-blur-xl bg-black/80">
-        <button onClick={() => router.back()}>
+      <header className="relative z-20 px-6 py-8 flex items-center justify-between">
+        <button 
+          onClick={() => router.back()}
+          className="p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
           <ChevronDown className="w-6 h-6" />
         </button>
-        <span className="text-sm font-medium text-gray-400">正在播放</span>
-        <button>
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1 font-bold">正在播放</span>
+          <span className="text-sm font-medium">{album.name}</span>
+        </div>
+        <button className="p-2 rounded-full hover:bg-white/10 transition-colors">
           <MoreHorizontal className="w-6 h-6" />
         </button>
       </header>
 
-      {/* Main Content - Cover & Lyrics */}
-      <div className="flex-1 flex flex-col px-6 pt-4 pb-6 overflow-hidden">
-        {/* Album Cover */}
-        <div className="flex justify-center mb-6">
-          <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-2xl bg-neutral-900">
-            {album.coverPath ? (
-              <img
-                src={album.coverPath}
-                alt={album.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="flex items-center justify-center w-full h-full">
-                <ListMusic className="w-20 h-20 text-neutral-700" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Song Info */}
-        <div className="text-center mb-4">
-          <h2 className="text-2xl font-bold truncate">{song.title}</h2>
-          <p className="text-gray-400">{album.name}</p>
-        </div>
-
-        {/* Lyrics */}
-        <div
-          ref={lyricsContainerRef}
-          className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide"
-          style={{ maxHeight: "200px" }}
-        >
-          <div className="space-y-8 text-center">
-            {/* Padding for centering */}
-            <div className="h-8" />
-
-            {lyrics.length === 0 ? (
-              <p className="text-gray-600 text-center">暂无歌词</p>
-            ) : (
-              lyrics.map((line, index) => (
-                <div
-                  key={index}
-                  data-lyric-index={index}
-                  className={`transition-all duration-300 ${
-                    index === currentLyricIndex
-                      ? "text-white scale-110 font-semibold"
-                      : "text-gray-600 scale-100"
-                  }`}
-                >
-                  {line.text || <span className="opacity-0">-</span>}
+      {/* Main Layout */}
+      <main className="relative z-10 flex-1 flex flex-col md:flex-row md:px-12 lg:px-24 md:gap-12 overflow-hidden">
+        
+        {/* Left Side: Cover & Info */}
+        <div className={`flex-1 flex flex-col justify-center items-center md:items-start transition-all duration-500 ${viewMode === 'lyrics' ? 'hidden md:flex opacity-50 scale-90' : 'flex'}`}>
+          <div 
+            className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-[400px] lg:h-[400px] mb-8 md:mb-12 group cursor-pointer"
+            onClick={() => setViewMode("lyrics")}
+          >
+            <div className={`absolute inset-0 rounded-2xl bg-white/5 shadow-2xl transition-all duration-500 group-hover:scale-105 ${isPlaying ? 'scale-100 shadow-[0_20px_50px_rgba(255,45,85,0.3)]' : 'scale-95 opacity-80'}`}>
+              {album.coverPath ? (
+                <Image
+                  src={album.coverPath}
+                  alt={album.name}
+                  fill
+                  unoptimized
+                  className="rounded-2xl object-cover"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full">
+                  <ListMusic className="w-20 h-20 text-white/20" />
                 </div>
-              ))
-            )}
+              )}
+            </div>
+          </div>
 
-            {/* Padding for centering */}
-            <div className="h-8" />
+          <div className="w-full max-w-sm md:max-w-none text-center md:text-left space-y-2">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold truncate leading-tight">{song.title}</h2>
+            <p className="text-xl md:text-2xl text-white/60 font-medium truncate">{album.name}</p>
+            
+            <div className="flex items-center justify-center md:justify-start gap-4 pt-4 md:pt-8 opacity-0 md:opacity-100 transition-opacity">
+               <button className="p-3 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+                 <Heart className="w-5 h-5" />
+               </button>
+               <button 
+                 onClick={() => setIsShuffle(!isShuffle)}
+                 className={`p-3 rounded-full transition-colors ${isShuffle ? 'bg-[#ff2d55]/20 text-[#ff2d55]' : 'bg-white/5 hover:bg-white/10 text-white'}`}
+               >
+                 <Shuffle className="w-5 h-5" />
+               </button>
+               <button 
+                 onClick={toggleRepeat}
+                 className={`p-3 rounded-full transition-colors relative ${repeatMode !== 'off' ? 'bg-[#ff2d55]/20 text-[#ff2d55]' : 'bg-white/5 hover:bg-white/10 text-white'}`}
+               >
+                 <Repeat className="w-5 h-5" />
+                 {repeatMode === 'one' && <span className="absolute top-2 right-2 text-[8px] font-bold">1</span>}
+               </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Progress Bar */}
-      <div className="px-6 py-2">
-        <input
-          type="range"
-          min={0}
-          max={duration || 100}
-          value={currentTime}
-          onChange={handleSeek}
-          className="w-full h-1 bg-neutral-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg"
-          style={{
-            background: `linear-gradient(to right, #ff2d55 ${(currentTime / (duration || 1)) * 100}%, #3a3a3c ${(currentTime / (duration || 1)) * 100}%)`,
-          }}
-        />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+        {/* Right Side: Lyrics */}
+        <div className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-500 ${viewMode === 'lyrics' ? 'flex translate-y-0' : 'hidden md:flex opacity-40 translate-y-4'}`}>
+          <div className="flex-1 min-h-0 relative">
+             <Lyrics 
+               lyrics={lyrics} 
+               currentTime={currentTime} 
+               onLineClick={handleSeek}
+               className="mask-fade-edge"
+             />
+             <div 
+               className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/0 to-transparent pointer-events-none" 
+               style={{ background: 'linear-gradient(to bottom, var(--bg-fade) 0%, transparent 100%)' }}
+             />
+          </div>
+          <button 
+            className="md:hidden py-4 text-white/40 text-xs font-bold uppercase tracking-widest"
+            onClick={() => setViewMode("cover")}
+          >
+            返回封面
+          </button>
         </div>
-      </div>
+      </main>
 
-      {/* Controls */}
-      <div className="px-8 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <button className="text-gray-400 hover:text-white">
-            <Heart className="w-6 h-6" />
-          </button>
-          <button
-            onClick={playPrev}
-            className="text-white hover:text-[#ff2d55] transition-colors"
-          >
-            <SkipBack className="w-8 h-8" />
-          </button>
-          <button
-            onClick={togglePlay}
-            className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform"
-          >
-            {isPlaying ? (
-              <Pause className="w-8 h-8 fill-black" />
-            ) : (
-              <Play className="w-8 h-8 fill-black ml-1" />
-            )}
-          </button>
-          <button
-            onClick={playNext}
-            className="text-white hover:text-[#ff2d55] transition-colors"
-          >
-            <SkipForward className="w-8 h-8" />
-          </button>
-          <button
-            onClick={() => setShowPlaylist(!showPlaylist)}
-            className={`${showPlaylist ? "text-[#ff2d55]" : "text-gray-400"} hover:text-white`}
+      {/* Player Controls Container */}
+      <footer className="relative z-30 px-6 pb-12 pt-4 md:px-12 lg:px-24">
+        {/* Progress Bar */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="relative group">
+            <input
+              type="range"
+              min={0}
+              max={duration || 100}
+              step={0.1}
+              value={currentTime}
+              onChange={(e) => handleSeek(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer transition-all hover:h-2 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:h-0 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full group-hover:[&::-webkit-slider-thumb]:w-4 group-hover:[&::-webkit-slider-thumb]:h-4 group-hover:[&::-webkit-slider-thumb]:shadow-xl"
+              style={{
+                background: `linear-gradient(to right, white ${(currentTime / (duration || 1)) * 100}%, rgba(255,255,255,0.1) ${(currentTime / (duration || 1)) * 100}%)`,
+              }}
+            />
+          </div>
+          <div className="flex justify-between text-[10px] font-bold text-white/40 mt-3 tracking-widest uppercase">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+
+        {/* Main Controls */}
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <button 
+            onClick={() => setShowPlaylist(true)}
+            className="p-2 text-white/40 hover:text-white transition-colors"
           >
             <ListMusic className="w-6 h-6" />
           </button>
+          
+          <div className="flex items-center gap-8 md:gap-12">
+            <button
+              onClick={playPrev}
+              className="p-2 text-white hover:scale-110 active:scale-95 transition-all"
+            >
+              <SkipBack className="w-8 h-8 fill-current" />
+            </button>
+            
+            <button
+              onClick={togglePlay}
+              className="w-20 h-20 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-90 transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+            >
+              {isPlaying ? (
+                <Pause className="w-10 h-10 fill-current" />
+              ) : (
+                <Play className="w-10 h-10 fill-current ml-1" />
+              )}
+            </button>
+            
+            <button
+              onClick={playNext}
+              className="p-2 text-white hover:scale-110 active:scale-95 transition-all"
+            >
+              <SkipForward className="w-8 h-8 fill-current" />
+            </button>
+          </div>
+
+          <button className="p-2 text-white/40 hover:text-white transition-colors">
+            <Volume2 className="w-6 h-6" />
+          </button>
         </div>
-      </div>
+      </footer>
 
       {/* Playlist Modal */}
       {showPlaylist && (
-        <div className="fixed inset-0 z-50 bg-black/90" onClick={() => setShowPlaylist(false)}>
+        <div 
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-all duration-300 animate-in fade-in" 
+          onClick={() => setShowPlaylist(false)}
+        >
           <div
-            className="absolute bottom-0 left-0 right-0 bg-[#1c1c1e] rounded-t-3xl p-4 max-h-[70vh] overflow-y-auto"
+            className="absolute bottom-0 left-0 right-0 bg-[#121212] rounded-t-[32px] p-8 max-h-[80vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-4" />
-            <h3 className="text-lg font-bold mb-4">播放列表</h3>
-            {album.songs.map((s, index) => (
-              <div
-                key={s.id}
-                onClick={() => {
-                  router.push(
-                    `/player/${encodeURIComponent(album.name)}/${encodeURIComponent(s.title)}`
-                  );
-                  setShowPlaylist(false);
-                }}
-                className={`flex items-center gap-3 py-3 border-b border-neutral-800 ${
-                  s.title === songTitle ? "text-[#ff2d55]" : "text-white"
-                }`}
-              >
-                <span className="w-6 text-center text-sm">
-                  {s.title === songTitle && isPlaying ? (
-                    <div className="flex gap-0.5 justify-center">
-                      <div className="w-0.5 h-3 bg-[#ff2d55] animate-pulse" />
-                      <div className="w-0.5 h-4 bg-[#ff2d55] animate-pulse" style={{ animationDelay: "0.1s" }} />
-                      <div className="w-0.5 h-2 bg-[#ff2d55] animate-pulse" style={{ animationDelay: "0.2s" }} />
+            <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-bold">待播清单</h3>
+              <span className="text-white/40 text-sm">{album.songs.length} 首歌曲</span>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto space-y-2 scrollbar-hide pr-2">
+              {album.songs.map((s, index) => (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    router.push(
+                      `/player/${encodeURIComponent(album.name)}/${encodeURIComponent(s.title)}`
+                    );
+                    setShowPlaylist(false);
+                  }}
+                  className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                    s.title === songTitle 
+                      ? "bg-white/10 text-white" 
+                      : "hover:bg-white/5 text-white/60 hover:text-white"
+                  }`}
+                >
+                  <span className="w-6 text-sm font-bold opacity-40">
+                    {index + 1}
+                  </span>
+                  <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                     <Image src={album.coverPath} alt="" fill unoptimized className="object-cover" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-bold truncate">{s.title}</div>
+                    <div className="text-xs opacity-60 truncate">{album.name}</div>
+                  </div>
+                  {s.title === songTitle && isPlaying && (
+                    <div className="flex gap-1 items-end h-4">
+                      <div className="w-1 bg-white animate-[music-bar_0.8s_ease-in-out_infinite]" />
+                      <div className="w-1 bg-white animate-[music-bar_1.2s_ease-in-out_infinite]" />
+                      <div className="w-1 bg-white animate-[music-bar_1.0s_ease-in-out_infinite]" />
                     </div>
-                  ) : (
-                    index + 1
                   )}
-                </span>
-                <div className="flex-1">
-                  <div className="font-medium">{s.title}</div>
-                </div>
-              </div>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
+
+      <style jsx global>{`
+        @keyframes music-bar {
+          0%, 100% { height: 4px; }
+          50% { height: 16px; }
+        }
+        
+        .mask-fade-edge {
+          mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+          -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+        }
+      `}</style>
     </div>
   );
 }

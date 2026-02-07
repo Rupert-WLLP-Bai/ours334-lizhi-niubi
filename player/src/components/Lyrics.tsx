@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import styles from './Lyrics.module.css';
 
 interface LyricLine {
@@ -10,23 +10,22 @@ interface LyricsProps {
   lyrics: LyricLine[];
   currentTime: number;
   onLineClick?: (time: number) => void;
-  height?: number;
+  className?: string;
 }
 
 export const Lyrics: React.FC<LyricsProps> = ({
   lyrics,
   currentTime,
   onLineClick,
-  height = 300,
+  className = '',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const activeLineRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [touchY, setTouchY] = useState<number | null>(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Find active line based on current time
-  useEffect(() => {
-    let activeIdx = 0;
+  const activeIndex = useMemo(() => {
+    let activeIdx = -1;
     for (let i = 0; i < lyrics.length; i++) {
       if (currentTime >= lyrics[i].time) {
         activeIdx = i;
@@ -34,12 +33,12 @@ export const Lyrics: React.FC<LyricsProps> = ({
         break;
       }
     }
-    setActiveIndex(activeIdx);
+    return activeIdx;
   }, [currentTime, lyrics]);
 
   // Smooth scroll to active line
   useEffect(() => {
-    if (activeLineRef.current && containerRef.current) {
+    if (activeIndex >= 0 && activeLineRef.current && containerRef.current && !isUserScrolling) {
       const container = containerRef.current;
       const activeLine = activeLineRef.current;
       const containerHeight = container.clientHeight;
@@ -47,66 +46,35 @@ export const Lyrics: React.FC<LyricsProps> = ({
       const activeLineHeight = activeLine.clientHeight;
       const targetScroll = activeLineTop - (containerHeight / 2) + (activeLineHeight / 2);
 
-      requestAnimationFrame(() => {
-        container.scrollTo({
-          top: Math.max(0, targetScroll),
-          behavior: 'smooth',
-        });
+      container.scrollTo({
+        top: Math.max(0, targetScroll),
+        behavior: 'smooth',
       });
     }
-  }, [activeIndex]);
+  }, [activeIndex, isUserScrolling]);
 
-  // Handle touch/mouse drag for seeking
-  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    setTouchY(clientY);
-  };
+  const handleScroll = useCallback(() => {
+    setIsUserScrolling(true);
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 2000);
+  }, []);
 
-  const handleTouchMove = useCallback(
-    (e: TouchEvent | React.MouseEvent) => {
-      if (touchY === null || !containerRef.current) return;
-
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      const deltaY = touchY - clientY;
-
-      // Manual scrolling
-      containerRef.current.scrollTop += deltaY * 1.5;
-      setTouchY(clientY);
-    },
-    [touchY]
-  );
-
-  const handleTouchEnd = () => {
-    setTouchY(null);
-  };
-
-  // Click on lyric line to seek
   const handleLineClick = (line: LyricLine) => {
     if (onLineClick) {
       onLineClick(line.time);
     }
   };
 
-  // Manual scroll detection
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-
-    // Could implement parallax effect or other visual feedback here
-  }, []);
-
   return (
     <div
       ref={containerRef}
-      className={styles.lyricsContainer}
-      style={{ height }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove as React.TouchEventHandler}
-      onTouchEnd={handleTouchEnd}
-      onMouseDown={handleTouchStart}
-      onMouseMove={handleTouchMove}
-      onMouseUp={handleTouchEnd}
-      onMouseLeave={handleTouchEnd}
+      className={`${styles.lyricsContainer} ${className} scrollbar-hide`}
       onScroll={handleScroll}
+      style={{ height: '100%', maxWidth: 'none' }}
     >
       <div className={styles.lyricsWrapper}>
         {lyrics.length === 0 ? (
@@ -116,9 +84,7 @@ export const Lyrics: React.FC<LyricsProps> = ({
           </div>
         ) : (
           <>
-            {/* Padding at top */}
-            <div className={styles.paddingLine} />
-
+            <div className="h-[40vh] flex-shrink-0" />
             {lyrics.map((line, index) => (
               <div
                 key={`${line.time}-${index}`}
@@ -129,28 +95,14 @@ export const Lyrics: React.FC<LyricsProps> = ({
                 onClick={() => handleLineClick(line)}
               >
                 <span className={styles.lyricText}>{line.text}</span>
-                {index === activeIndex && (
-                  <span className={styles.timeIndicator}>
-                    {formatTime(line.time)}
-                  </span>
-                )}
               </div>
             ))}
-
-            {/* Padding at bottom */}
-            <div className={styles.paddingLine} />
+            <div className="h-[40vh] flex-shrink-0" />
           </>
         )}
       </div>
     </div>
   );
 };
-
-// Format time helper
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
 
 export type { LyricLine, LyricsProps };

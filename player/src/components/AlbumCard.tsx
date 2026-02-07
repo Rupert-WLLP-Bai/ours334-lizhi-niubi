@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import styles from './AlbumCard.module.css';
 
 interface Album {
@@ -66,9 +67,12 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({
             <div className={styles.loadingSpinner} />
           </div>
         )}
-        <img
+        <Image
           src={imageError ? '/default-album.png' : album.coverUrl}
           alt={album.name}
+          width={coverSize}
+          height={coverSize}
+          unoptimized
           className={`${styles.cover} ${imageLoaded ? styles.loaded : ''}`}
           style={{ width: coverSize, height: coverSize }}
           onLoad={() => setImageLoaded(true)}

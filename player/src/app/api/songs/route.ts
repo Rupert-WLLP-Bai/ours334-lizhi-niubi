@@ -1,8 +1,10 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const ALBUMS_DIR = '/home/pejoy/ours334-lizhi-niubi/lizhi-lyrics/albums/';
-const PUBLIC_DIR = '/home/pejoy/ours334-lizhi-niubi/player/public';
 
 export interface Song {
   id: string;
@@ -27,7 +29,6 @@ function getAudioUrl(albumName: string, fileName: string): string {
 
 function getLyricUrl(albumName: string, fileName: string): string | null {
   const baseName = fileName.replace(/\.(flac|lrc)$/i, '');
-  const lrcFile = baseName + '.lrc';
   return `/api/lyrics?album=${encodeURIComponent(albumName)}&song=${encodeURIComponent(baseName)}`;
 }
 
@@ -82,7 +83,6 @@ export async function GET() {
         if (stat.isFile() && file.endsWith('.flac')) {
           const songTitle = extractSongTitle(file);
           const songId = generateSongId(albumName, songTitle);
-          const lyricFile = file.replace(/\.flac$/i, '.lrc');
 
           const song: Song = {
             id: songId,
