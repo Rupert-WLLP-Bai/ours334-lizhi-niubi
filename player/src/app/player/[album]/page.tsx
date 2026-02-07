@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -21,10 +21,14 @@ interface AlbumData {
   songs: Song[];
 }
 
-export default function AlbumPage() {
-  const params = useParams();
+type AlbumParams = {
+  album: string;
+};
+
+export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
+  const resolvedParams = use(props.params);
   const router = useRouter();
-  const albumName = params.album as string;
+  const albumName = useMemo(() => decodeURIComponent(resolvedParams.album), [resolvedParams.album]);
   const [album, setAlbum] = useState<AlbumData | null>(null);
   const [loading, setLoading] = useState(true);
 

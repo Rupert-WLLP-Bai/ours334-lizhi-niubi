@@ -1,143 +1,122 @@
-/* Lyrics component styles */
+.lyricsRoot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .lyricsContainer {
   width: 100%;
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  cursor: grab;
   position: relative;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
 }
 
 .lyricsContainer::-webkit-scrollbar {
   display: none;
 }
 
-.lyricsContainer:active {
-  cursor: grabbing;
-}
-
 .lyricsWrapper {
-  padding: 40px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 100%;
+  width: 100%;
+  flex-grow: 1;
+  padding: 20px 0;
 }
 
 .lyricLine {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 24px;
-  margin: 4px 0;
+  padding: 10px 24px;
+  margin: 6px 0;
   border-radius: 20px;
-  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-  cursor: pointer;
-  position: relative;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   width: 100%;
   max-width: 600px;
-}
-
-.lyricLine:hover {
-  background: rgba(255, 255, 255, 0.05);
+  opacity: 0.3;
+  min-height: 48px;
+  justify-content: center;
 }
 
 .lyricLine.active {
-  transform: scale(1.1);
-  background: rgba(255, 255, 255, 0.08);
+  opacity: 1;
+  transform: scale(1.05);
 }
 
-.lyricLine.past {
-  opacity: 0.3;
+.lyricLine.scrolled {
+  opacity: 0.8;
+  transform: scale(1.02);
 }
 
 .lyricText {
-  font-size: 20px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.5);
-  text-align: center;
-  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.lyricLine.active .lyricText {
+  font-size: 18px;
+  line-height: 1.4;
   color: #fff;
-  font-size: 28px;
-  text-shadow: 0 0 30px rgba(255, 45, 85, 0.4);
-}
-
-.lyricLine:hover .lyricText {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* Empty state */
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.emptyState p {
-  margin: 0;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.hint {
-  font-size: 12px;
-  margin-top: 12px !important;
-  color: rgba(255, 255, 255, 0.2);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* Karaoke style animation for active line */
-@keyframes highlightPulse {
-  0%, 100% {
-    text-shadow: 0 0 20px rgba(255, 45, 85, 0.4);
-    transform: scale(1);
-  }
-  50% {
-    text-shadow: 0 0 40px rgba(255, 45, 85, 0.7);
-    transform: scale(1.02);
-  }
+  text-align: center;
+  font-weight: 600;
 }
 
 .lyricLine.active .lyricText {
-  /* Dynamic gradient text for active line */
-  background: linear-gradient(
-    90deg,
-    #fff 0%,
-    #ff2d55 50%,
-    #fff 100%
-  );
+  font-size: 24px;
+  text-shadow: 0 0 20px rgba(255, 45, 85, 0.5);
+  background: linear-gradient(90deg, #fff, #ff2d55, #fff);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: highlightPulse 3s ease-in-out infinite, karaoke 5s linear infinite;
+  animation: karaoke 5s linear infinite;
 }
 
-@keyframes karaoke {
-  to { background-position: 200% center; }
+@keyframes karaoke { to { background-position: 200% center; } }
+
+/* Seek Indicator */
+.seekIndicator {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 20;
+  padding: 0 10px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .lyricLine {
-    padding: 12px 16px;
-  }
+.seekLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
 
-  .lyricText {
-    font-size: 18px;
-  }
+.seekTime {
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+  padding: 0 10px;
+  opacity: 0.6;
+}
 
-  .lyricLine.active .lyricText {
-    font-size: 24px;
-  }
+.seekButton {
+  pointer-events: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: white;
+  color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s;
+}
+
+.seekButton:active {
+  transform: scale(0.9);
 }
