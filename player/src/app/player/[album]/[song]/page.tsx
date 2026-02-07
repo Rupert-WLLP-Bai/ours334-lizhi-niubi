@@ -51,6 +51,7 @@ export default function PlayerPage() {
   const [viewMode, setViewMode] = useState<"cover" | "lyrics">("cover");
   const [repeatMode, setRepeatMode] = useState<"off" | "one" | "all">("off");
   const [isShuffle, setIsShuffle] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -93,10 +94,10 @@ export default function PlayerPage() {
 
   // Audio handlers
   const handleTimeUpdate = useCallback(() => {
-    if (audioRef.current) {
+    if (audioRef.current && !isSeeking) {
       setCurrentTime(audioRef.current.currentTime);
     }
-  }, []);
+  }, [isSeeking]);
 
   const handleLoadedMetadata = useCallback(() => {
     if (audioRef.current) {
@@ -116,10 +117,21 @@ export default function PlayerPage() {
   };
 
   const handleSeek = (time: number) => {
-    if (audioRef.current) {
+    setCurrentTime(time);
+    // 如果不是正在拖动（说明是点击跳转，如歌词点击），则立即同步音频
+    if (!isSeeking && audioRef.current) {
       audioRef.current.currentTime = time;
-      setCurrentTime(time);
     }
+  };
+
+  const handleSeekEnd = (time: number) => {
+    if (audioRef.current) {
+      // 确保时间有效
+      const targetTime = Math.min(Math.max(0, time), duration);
+      audioRef.current.currentTime = targetTime;
+      setCurrentTime(targetTime);
+    }
+    setIsSeeking(false);
   };
 
   const playNext = useCallback(() => {
@@ -328,7 +340,11 @@ export default function PlayerPage() {
               max={duration || 100}
               step={0.1}
               value={currentTime}
+              onMouseDown={() => setIsSeeking(true)}
+              onTouchStart={() => setIsSeeking(true)}
               onChange={(e) => handleSeek(parseFloat(e.target.value))}
+              onMouseUp={(e) => handleSeekEnd(parseFloat((e.target as HTMLInputElement).value))}
+              onTouchEnd={(e) => handleSeekEnd(parseFloat((e.target as HTMLInputElement).value))}
               className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer transition-all hover:h-2 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:h-0 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full group-hover:[&::-webkit-slider-thumb]:w-4 group-hover:[&::-webkit-slider-thumb]:h-4 group-hover:[&::-webkit-slider-thumb]:shadow-xl"
               style={{
                 background: `linear-gradient(to right, white ${(currentTime / (duration || 1)) * 100}%, rgba(255,255,255,0.1) ${(currentTime / (duration || 1)) * 100}%)`,
