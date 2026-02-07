@@ -18,6 +18,7 @@ interface Song {
 interface AlbumData {
   name: string;
   coverPath: string;
+  year?: string | number;
   songs: Song[];
 }
 
@@ -28,7 +29,13 @@ type AlbumParams = {
 export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
   const resolvedParams = use(props.params);
   const router = useRouter();
-  const albumName = useMemo(() => decodeURIComponent(resolvedParams.album), [resolvedParams.album]);
+  const albumName = useMemo(() => {
+    try {
+      return decodeURIComponent(resolvedParams.album);
+    } catch {
+      return resolvedParams.album;
+    }
+  }, [resolvedParams.album]);
   const [album, setAlbum] = useState<AlbumData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +44,7 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
       .then((res) => res.json())
       .then((data) => {
         const found = (data.albums || []).find(
-          (a: AlbumData) => decodeURIComponent(albumName) === a.name
+          (a: AlbumData) => albumName === a.name
         );
         setAlbum(found || null);
         setLoading(false);
@@ -104,10 +111,12 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
           <span className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest mb-4">Album</span>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight">{album.name}</h1>
           <div className="flex items-center justify-center md:justify-start gap-4 mb-8">
-             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#ff2d55] to-purple-600 border border-white/20" />
+             <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20 shadow-lg">
+                <Image src="/lizhi-avatar.png" alt="Artist Avatar" width={40} height={40} unoptimized className="object-cover" />
+             </div>
              <span className="font-bold text-lg">李志</span>
              <span className="text-white/40">•</span>
-             <span className="text-white/40">{album.songs.length} 首歌曲</span>
+             <span className="text-white/40">{album.year ? `${album.year} • ` : ''}{album.songs.length} 首歌曲</span>
           </div>
           
           <div className="flex items-center justify-center md:justify-start gap-4">
@@ -137,6 +146,7 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
             <Link
               key={song.id}
               href={`/player/${encodeURIComponent(album.name)}/${encodeURIComponent(song.title)}`}
+              data-testid="album-song-link"
               className="group grid grid-cols-[40px_1fr_100px] items-center gap-4 py-4 px-4 rounded-2xl hover:bg-white/5 transition-all"
             >
               <span className="w-8 text-sm font-bold text-white/30 group-hover:text-[#ff2d55] transition-colors">

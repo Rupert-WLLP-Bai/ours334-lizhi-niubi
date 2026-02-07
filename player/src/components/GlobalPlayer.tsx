@@ -16,6 +16,7 @@ import {
   Repeat,
   Repeat1,
   Shuffle,
+  Music,
 } from "lucide-react";
 import { usePlayer, type Song, type Album } from "@/app/player/PlayerContext";
 import { formatTime } from "@/lib/lyrics";
@@ -55,8 +56,22 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   // 从 URL 同步初始状态
   useEffect(() => {
     if (!params.album || !params.song) return;
-    const albumName = decodeURIComponent(params.album as string);
-    const songTitle = decodeURIComponent(params.song as string);
+    const rawAlbum = params.album as string;
+    const rawSong = params.song as string;
+    const albumName = (() => {
+      try {
+        return decodeURIComponent(rawAlbum);
+      } catch {
+        return rawAlbum;
+      }
+    })();
+    const songTitle = (() => {
+      try {
+        return decodeURIComponent(rawSong);
+      } catch {
+        return rawSong;
+      }
+    })();
 
     if (currentSong?.title === songTitle && currentAlbum?.name === albumName) return;
 
@@ -72,12 +87,20 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
       });
   }, [params.album, params.song, currentSong?.title, currentAlbum?.name, setCurrentAlbum, setCurrentSong]);
 
-  const togglePlay = (e?: React.MouseEvent) => {
+  const togglePlay = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (audioRef.current) {
-      if (isPlaying) audioRef.current.pause();
-      else audioRef.current.play();
-      setIsPlaying(!isPlaying);
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+      return;
+    }
+
+    try {
+      await audio.play();
+    } catch {
+      setIsPlaying(false);
     }
   };
 
@@ -166,9 +189,19 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
         autoPlay
       />
 
+      {/* 全屏 Header */}
       {isFullPlayer && (
         <header className="relative z-20 px-6 py-4 flex items-center justify-between">
-          <button onClick={() => router.push(`/player/${encodeURIComponent(params.album as string)}`)} className="p-2 rounded-full hover:bg-white/10 transition-colors">
+          <button 
+            onClick={() => {
+              if (currentAlbum) {
+                router.push(`/player/${encodeURIComponent(currentAlbum.name)}`);
+              } else {
+                router.push('/');
+              }
+            }} 
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+          >
             <ChevronDown className="w-6 h-6" />
           </button>
           <div className="flex flex-col items-center">
@@ -213,6 +246,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 flex-1">
                    <button onClick={() => setPlayMode(playMode === 'list' ? 'single' : playMode === 'single' ? 'shuffle' : 'list')}
+                     data-testid="play-mode-button"
                      className={`p-2 rounded-full transition-colors ${playMode !== 'list' ? 'bg-[#ff2d55]/20 text-[#ff2d55]' : 'text-white/30'}`}>
                      {playMode === 'list' && <Repeat className="w-6 h-6" />}
                      {playMode === 'single' && <Repeat1 className="w-6 h-6" />}
@@ -224,7 +258,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                 </div>
                 <div className="flex items-center gap-6">
                   <button onClick={(e) => playPrev(e)} className="p-2 text-white hover:scale-110 active:scale-95 transition-all"><SkipBack className="w-8 h-8 fill-current" /></button>
-                  <button onClick={() => togglePlay()} className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all">
+                  <button onClick={() => togglePlay()} data-testid="play-toggle-button" className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all">
                     {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
                   </button>
                   <button onClick={(e) => playNext(e)} className="p-2 text-white hover:scale-110 active:scale-95 transition-all"><SkipForward className="w-8 h-8 fill-current" /></button>
@@ -238,10 +272,19 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
           ) : (
             <div 
               className="max-w-2xl mx-auto glass-card rounded-2xl p-2.5 flex items-center gap-4 shadow-2xl cursor-pointer animate-in slide-in-from-bottom-4 duration-500 pointer-events-auto"
-              onClick={() => router.push(`/player/${encodeURIComponent(currentAlbum?.name || '')}/${encodeURIComponent(currentSong?.title || '')}`)}
+              onClick={() => {
+                if (!currentAlbum || !currentSong) return;
+                router.push(`/player/${encodeURIComponent(currentAlbum.name)}/${encodeURIComponent(currentSong.title)}`);
+              }}
             >
               <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 shadow-lg">
-                <Image src={currentAlbum?.coverPath || ''} alt="" fill unoptimized className="object-cover" />
+                {currentAlbum?.coverPath ? (
+                  <Image src={currentAlbum.coverPath} alt="" fill unoptimized className="object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-white/5">
+                    <Music className="w-4 h-4 text-white/30" />
+                  </div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-bold truncate">{currentSong?.title}</div>
@@ -251,7 +294,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                 <button onClick={(e) => playPrev(e)} className="hidden sm:flex w-9 h-9 items-center justify-center text-white/40 hover:text-white transition-colors">
                   <SkipBack className="w-5 h-5 fill-current" />
                 </button>
-                <button onClick={togglePlay} className="relative w-11 h-11 flex items-center justify-center group">
+                <button onClick={togglePlay} data-testid="play-toggle-button" className="relative w-11 h-11 flex items-center justify-center group">
                   <svg className="absolute inset-0 w-full h-full -rotate-90">
                     <circle cx="22" cy="22" r={radius} className="stroke-white/10" strokeWidth="2.5" fill="transparent" />
                     <circle cx="22" cy="22" r={radius} className="stroke-[#ff2d55] transition-all duration-300" strokeWidth="2.5" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" />

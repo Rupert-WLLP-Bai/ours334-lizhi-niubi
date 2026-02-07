@@ -14,6 +14,7 @@ export interface Song {
 export interface Album {
   id: string;
   name: string;
+  year?: string;
   coverPath: string;
   songs: Song[];
 }

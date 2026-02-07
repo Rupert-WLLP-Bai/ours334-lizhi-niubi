@@ -1,14 +1,13 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-
-const ALBUMS_DIR = path.join(process.cwd(), '..', 'lizhi-lyrics', 'albums');
+import { ALBUMS_DIR } from './albums';
 
 export interface Song {
   id: string;
   title: string;
   album: string;
   audioPath: string;
-  lyricPath: string;
+  lyricPath: string | null;
   coverPath: string;
 }
 

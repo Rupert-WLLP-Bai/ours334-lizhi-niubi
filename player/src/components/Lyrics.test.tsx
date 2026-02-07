@@ -1,6 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import type { ComponentProps } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Lyrics } from './Lyrics';
+import { PlayerProvider } from '@/app/player/PlayerContext';
 
 // Mock scroll methods since JSDOM doesn't support them
 window.HTMLElement.prototype.scrollTo = vi.fn();
@@ -16,45 +18,40 @@ describe('Lyrics Component', () => {
     vi.clearAllMocks();
   });
 
+  const renderLyrics = (props?: Partial<ComponentProps<typeof Lyrics>>) =>
+    render(
+      <PlayerProvider>
+        <Lyrics lyrics={mockLyrics} currentTime={0} {...props} />
+      </PlayerProvider>
+    );
+
   it('renders all lyric lines', () => {
-    render(<Lyrics lyrics={mockLyrics} currentTime={0} />);
+    renderLyrics();
     expect(screen.getByText('Line 1')).toBeDefined();
     expect(screen.getByText('Line 2')).toBeDefined();
     expect(screen.getByText('Line 3')).toBeDefined();
   });
 
   it('highlights the active lyric line', () => {
-    const { container } = render(<Lyrics lyrics={mockLyrics} currentTime={6} />);
-    // Line 2 should be active (index 1)
+    const { container } = renderLyrics({ currentTime: 6 });
     const lines = container.querySelectorAll('[class*="lyricLine"]');
     expect(lines[1].className).toContain('active');
   });
 
   it('triggers onBackToCover when clicking container on mobile', () => {
     const onBackToCover = vi.fn();
-    const { container } = render(
-      <Lyrics lyrics={mockLyrics} currentTime={0} onBackToCover={onBackToCover} />
-    );
-    
-    // Find the container and click it
-    const scrollContainer = container.querySelector('[class*="lyricsContainer"]');
-    if (scrollContainer) {
-      fireEvent.click(scrollContainer);
-      expect(onBackToCover).toHaveBeenCalled();
-    }
+    renderLyrics({ onBackToCover });
+    fireEvent.click(screen.getByTestId('lyrics-scroll-container'));
+    expect(onBackToCover).toHaveBeenCalledTimes(1);
   });
 
-  it('shows seek indicator during scroll', async () => {
-    const { container } = render(<Lyrics lyrics={mockLyrics} currentTime={0} />);
-    const scrollContainer = container.querySelector('[class*="lyricsContainer"]');
-    
-    if (scrollContainer) {
-      // Simulate scroll
-      fireEvent.scroll(scrollContainer);
-      
-      // Wait for React to update and show the indicator
-      // Note: We might need to mock getElementsByClassName or similar if necessary
-      expect(container.querySelector('[class*="seekIndicator"]')).toBeDefined();
-    }
+  it('shows seek indicator while user is scrolling', async () => {
+    renderLyrics({ currentTime: -1 });
+    const scrollContainer = screen.getByTestId('lyrics-scroll-container');
+    fireEvent.scroll(scrollContainer);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('lyrics-seek-indicator')).toBeDefined();
+    });
   });
 });

@@ -30,9 +30,14 @@ describe('Lyrics Library', () => {
 
   describe('formatTime', () => {
     it('should format seconds into MM:SS correctly', () => {
-      expect(formatTime(0)).toBe('0:00');
-      expect(formatTime(65)).toBe('1:05');
+      expect(formatTime(0)).toBe('00:00');
+      expect(formatTime(65)).toBe('01:05');
       expect(formatTime(3601)).toBe('60:01');
+    });
+
+    it('should clamp invalid values to 00:00', () => {
+      expect(formatTime(-10)).toBe('00:00');
+      expect(formatTime(Number.NaN)).toBe('00:00');
     });
   });
 

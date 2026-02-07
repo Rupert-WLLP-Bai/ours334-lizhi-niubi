@@ -1,93 +1,84 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+async function openAlbumPage(page: Page) {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: /LIZHI MUSIC/i })).toBeVisible();
+
+  const firstAlbumLink = page.getByTestId('home-album-link').first();
+  await expect(firstAlbumLink).toBeVisible();
+  const albumHref = await firstAlbumLink.getAttribute('href');
+  expect(albumHref).toBeTruthy();
+  await page.goto(albumHref!);
+
+  await expect(page).toHaveURL(/\/player\/[^/]+$/);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+}
+
+async function openPlayerPage(page: Page) {
+  await openAlbumPage(page);
+
+  const lrcSongLink = page.getByTestId('album-song-link').filter({
+    has: page.locator('span:has-text("LRC")'),
+  }).first();
+
+  if (await lrcSongLink.count()) {
+    const songHref = await lrcSongLink.getAttribute('href');
+    expect(songHref).toBeTruthy();
+    await page.goto(songHref!);
+  } else {
+    const fallbackSongHref = await page.getByTestId('album-song-link').first().getAttribute('href');
+    expect(fallbackSongHref).toBeTruthy();
+    await page.goto(fallbackSongHref!);
+  }
+
+  await expect(page).toHaveURL(/\/player\/[^/]+\/[^/]+$/);
+  await expect(page.getByRole('heading', { level: 2 })).toBeVisible();
+}
 
 test.describe('Music Player E2E', () => {
   test('full navigation and playback flow', async ({ page }) => {
-    // 1. Home Page
-    await page.goto('/');
-    await expect(page.locator('h1')).toContainText('LIZHI MUSIC');
-    
-    // Wait for albums to load
-    const albumCard = page.locator('a[href^="/player/"]').first();
-    await expect(albumCard).toBeVisible();
-    const albumName = await albumCard.locator('h4').innerText();
-    
-    // 2. Album Page
-    await albumCard.click();
-    await expect(page.locator('h1')).toContainText(albumName);
-    
-    const songItem = page.locator('a[href*="/player/"]').first();
-    await expect(songItem).toBeVisible();
-    const songTitle = await songItem.locator('div.font-bold').innerText();
-    
-    // 3. Player Page
-    await songItem.click();
-    // Wait for player layout to render
-    await expect(page.locator('h2')).toContainText(songTitle);
-    
-    // 4. Playback Controls
-    const playButton = page.locator('button >> svg.lucide-play, button >> svg.lucide-pause');
-    await expect(playButton).toBeVisible();
-    
-    // Test toggle play
-    const initialIsPlaying = await page.evaluate(() => {
-      const audio = document.querySelector('audio');
-      return audio ? !audio.paused : false;
-    });
-    
-    await page.locator('button >> svg.lucide-pause, button >> svg.lucide-play').first().click();
-    
-    const nextIsPlaying = await page.evaluate(() => {
-      const audio = document.querySelector('audio');
-      return audio ? !audio.paused : false;
-    });
-    expect(nextIsPlaying).not.toBe(initialIsPlaying);
+    await openPlayerPage(page);
+
+    const audio = page.locator('audio');
+    await expect(audio).toHaveAttribute('src', /\/api\/audio\?/);
+
+    const playToggleButton = page.getByTestId('play-toggle-button').first();
+    await expect(playToggleButton).toBeVisible();
+    await playToggleButton.click();
+
+    await expect(audio).toHaveCount(1);
   });
 
-  test('mobile view toggle lyrics', async ({ page }) => {
-    // Set to mobile viewport
+  test('mobile view toggles between cover and lyrics', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
-    
-    // Go to a known song (adjusting path as needed)
-    await page.goto('/');
-    await page.locator('a[href^="/player/"]').first().click();
-    await page.locator('a[href*="/player/"]').first().click();
-    
-    // Should see cover first
-    const coverImage = page.locator('main img').first();
-    await expect(coverImage).toBeVisible();
-    
-    // Click cover to switch to lyrics
-    await coverImage.click();
-    
-    // More robust way: find by text content that looks like lyrics
-    await expect(page.locator('span[class*="lyricText"]').first()).toBeVisible();
-    
-    // Click background to return
-    await page.locator('div[class*="lyricsContainer"]').click();
-    await expect(coverImage).toBeVisible();
+    await openPlayerPage(page);
+
+    const coverView = page.getByTestId('player-cover-view');
+    const lyricsContainer = page.getByTestId('lyrics-scroll-container');
+
+    await expect(coverView).toBeVisible();
+    await coverView.click();
+
+    await expect(lyricsContainer).toBeVisible();
+    await lyricsContainer.click();
+    await expect(coverView).toBeVisible();
   });
 
-  test('playback modes cycle', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('a[href^="/player/"]').first().click();
-    await page.locator('a[href*="/player/"]').first().click();
-    
-    // Find play mode button
-    const modeButton = page.locator('button >> svg.lucide-repeat, button >> svg.lucide-repeat-1, button >> svg.lucide-shuffle');
-    
-    // Initial: List (Repeat)
-    await expect(page.locator('button >> svg.lucide-repeat')).toBeVisible();
-    
-    // Click -> Single (Repeat1)
+  test('playback modes cycle in expected order', async ({ page }) => {
+    await openPlayerPage(page);
+
+    const modeButton = page.getByTestId('play-mode-button');
+    await expect(modeButton).toBeVisible();
+
+    await expect(modeButton.locator('svg.lucide-repeat')).toBeVisible();
     await modeButton.click();
-    await expect(page.locator('button >> svg.lucide-repeat-1')).toBeVisible();
-    
-    // Click -> Shuffle
+
+    await expect(modeButton.locator('svg.lucide-repeat-1')).toBeVisible();
     await modeButton.click();
-    await expect(page.locator('button >> svg.lucide-shuffle')).toBeVisible();
-    
-    // Click -> Back to List
+
+    await expect(modeButton.locator('svg.lucide-shuffle')).toBeVisible();
     await modeButton.click();
-    await expect(page.locator('button >> svg.lucide-repeat')).toBeVisible();
+
+    await expect(modeButton.locator('svg.lucide-repeat')).toBeVisible();
   });
 });

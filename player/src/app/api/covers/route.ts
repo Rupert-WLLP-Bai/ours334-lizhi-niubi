@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
 import { promises as fs } from 'fs';
+import { resolveAlbumFilePath } from '@/lib/albums';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -10,8 +10,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing album' }, { status: 400 });
   }
 
-  const albumsDir = path.join(process.cwd(), '..', 'lizhi-lyrics', 'albums');
-  const coverPath = path.join(albumsDir, album, 'cover.jpg');
+  const coverPath = resolveAlbumFilePath(album, 'cover.jpg');
+  if (!coverPath) {
+    return NextResponse.json({ error: 'Invalid album' }, { status: 400 });
+  }
 
   try {
     const file = await fs.readFile(coverPath);

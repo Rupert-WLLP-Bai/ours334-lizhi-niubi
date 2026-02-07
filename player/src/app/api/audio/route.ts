@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
-import { createReadStream, statSync } from 'fs';
+import { createReadStream } from 'fs';
+import { stat } from 'fs/promises';
+import { resolveAlbumFilePath } from '@/lib/albums';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,19 +12,66 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing album or song' }, { status: 400 });
   }
 
-  const albumsDir = path.join(process.cwd(), '..', 'lizhi-lyrics', 'albums');
-  const audioPath = path.join(albumsDir, album, `${song}.flac`);
+  const audioPath = resolveAlbumFilePath(album, `${song}.flac`);
+  if (!audioPath) {
+    return NextResponse.json({ error: 'Invalid album or song' }, { status: 400 });
+  }
 
   try {
-    const stats = statSync(audioPath);
+    const stats = await stat(audioPath);
     const fileSize = stats.size;
     const range = request.headers.get('range');
 
     if (range) {
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      const chunksize = (end - start) + 1;
+      const rangeMatch = /^bytes=(\d*)-(\d*)$/.exec(range);
+      if (!rangeMatch) {
+        return new NextResponse(null, {
+          status: 416,
+          headers: { 'Content-Range': `bytes */${fileSize}` },
+        });
+      }
+
+      let start: number;
+      let end: number;
+
+      if (!rangeMatch[1] && !rangeMatch[2]) {
+        return new NextResponse(null, {
+          status: 416,
+          headers: { 'Content-Range': `bytes */${fileSize}` },
+        });
+      }
+
+      if (!rangeMatch[1]) {
+        const suffixLength = parseInt(rangeMatch[2], 10);
+        if (Number.isNaN(suffixLength) || suffixLength <= 0) {
+          return new NextResponse(null, {
+            status: 416,
+            headers: { 'Content-Range': `bytes */${fileSize}` },
+          });
+        }
+        start = Math.max(fileSize - suffixLength, 0);
+        end = fileSize - 1;
+      } else {
+        start = parseInt(rangeMatch[1], 10);
+        end = rangeMatch[2] ? parseInt(rangeMatch[2], 10) : fileSize - 1;
+
+        if (
+          Number.isNaN(start) ||
+          Number.isNaN(end) ||
+          start < 0 ||
+          start >= fileSize ||
+          end < start
+        ) {
+          return new NextResponse(null, {
+            status: 416,
+            headers: { 'Content-Range': `bytes */${fileSize}` },
+          });
+        }
+
+        end = Math.min(end, fileSize - 1);
+      }
+
+      const chunksize = end - start + 1;
 
       // Create a Node.js readable stream for the range
       const fileStream = createReadStream(audioPath, { start, end });

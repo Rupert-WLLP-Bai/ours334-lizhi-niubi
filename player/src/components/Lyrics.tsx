@@ -4,7 +4,7 @@ import styles from './Lyrics.module.css';
 import { formatTime } from '@/lib/lyrics';
 import { usePlayer } from '@/app/player/PlayerContext';
 
-interface LyricLine {
+export interface LyricLine {
   time: number;
   text: string;
 }
@@ -27,7 +27,8 @@ export const Lyrics: React.FC<LyricsProps> = ({
   const activeLineRef = useRef<HTMLDivElement>(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [scrolledLineIndex, setScrolledLineIndex] = useState<number | null>(null);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isAutoScrollingRef = useRef(false);
 
   const activeIndex = useMemo(() => {
@@ -54,7 +55,8 @@ export const Lyrics: React.FC<LyricsProps> = ({
         behavior: 'smooth',
       });
 
-      setTimeout(() => {
+      if (autoScrollTimeoutRef.current) clearTimeout(autoScrollTimeoutRef.current);
+      autoScrollTimeoutRef.current = setTimeout(() => {
         isAutoScrollingRef.current = false;
       }, 600);
     }
@@ -90,6 +92,13 @@ export const Lyrics: React.FC<LyricsProps> = ({
     }, 1500);
   }, [lyrics]);
 
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (autoScrollTimeoutRef.current) clearTimeout(autoScrollTimeoutRef.current);
+    };
+  }, []);
+
   const handleConfirmSeek = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (scrolledLineIndex !== null) {
@@ -105,6 +114,7 @@ export const Lyrics: React.FC<LyricsProps> = ({
         ref={containerRef}
         className={`${styles.lyricsContainer} scrollbar-hide`}
         onScroll={handleScroll}
+        data-testid="lyrics-scroll-container"
         onClick={() => {
           if (onBackToCover) onBackToCover();
         }}
@@ -130,7 +140,7 @@ export const Lyrics: React.FC<LyricsProps> = ({
       </div>
 
       {scrolledLineIndex !== null && (
-        <div className={styles.seekIndicator}>
+        <div className={styles.seekIndicator} data-testid="lyrics-seek-indicator">
           <div className={styles.seekLine} />
           <div className={styles.seekTime}>{formatTime(lyrics[scrolledLineIndex].time)}</div>
           <button className={styles.seekButton} onClick={handleConfirmSeek}>

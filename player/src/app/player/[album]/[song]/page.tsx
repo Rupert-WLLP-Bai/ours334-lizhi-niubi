@@ -13,9 +13,21 @@ type PlayerParams = {
 
 export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
   const resolvedParams = use(props.params);
-  
-  const albumName = useMemo(() => decodeURIComponent(resolvedParams.album), [resolvedParams.album]);
-  const songTitle = useMemo(() => decodeURIComponent(resolvedParams.song), [resolvedParams.song]);
+
+  const albumName = useMemo(() => {
+    try {
+      return decodeURIComponent(resolvedParams.album);
+    } catch {
+      return resolvedParams.album;
+    }
+  }, [resolvedParams.album]);
+  const songTitle = useMemo(() => {
+    try {
+      return decodeURIComponent(resolvedParams.song);
+    } catch {
+      return resolvedParams.song;
+    }
+  }, [resolvedParams.song]);
 
   const { isPlaying, currentTime } = usePlayer();
   
@@ -35,7 +47,8 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
           setSong(foundSong || null);
         }
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, [albumName, songTitle]);
 
   // Load lyrics
@@ -48,6 +61,9 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
           if (isMounted) {
             setLyrics(parseLyrics(data.lyrics || ""));
           }
+        })
+        .catch(() => {
+          if (isMounted) setLyrics([]);
         });
     } else {
       // Use a timeout to make it "asynchronous" and avoid the lint error/performance warning
@@ -68,6 +84,7 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
         
         {/* Cover View */}
         <div 
+          data-testid="player-cover-view"
           className={`absolute inset-0 md:relative md:inset-auto md:w-auto md:flex-shrink-0 flex flex-col items-center md:items-start justify-center transition-all duration-500 ease-in-out cursor-pointer ${
             mobileView === 'cover' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:translate-x-0 md:opacity-100'
           }`}
@@ -79,6 +96,7 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
                 key={song.coverPath}
                 src={song.coverPath}
                 alt={song.title}
+                data-testid="player-cover-image"
                 fill
                 unoptimized
                 priority
@@ -95,6 +113,7 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
 
         {/* Lyrics View */}
         <div 
+          data-testid="player-lyrics-view"
           className={`absolute inset-0 md:relative md:inset-auto md:flex-1 h-full flex flex-col transition-all duration-500 ease-in-out ${
             mobileView === 'lyrics' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:translate-x-0 md:opacity-100'
           }`}

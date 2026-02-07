@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Play, Search, Bell, User } from "lucide-react";
+import { Play, Search, Bell, Music } from "lucide-react";
 import { usePlayer, type Album } from "./player/PlayerContext";
 
 export default function Home() {
@@ -39,8 +39,8 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <button className="p-2 rounded-full hover:bg-white/5 transition-colors"><Search className="w-5 h-5" /></button>
           <button className="p-2 rounded-full hover:bg-white/5 transition-colors"><Bell className="w-5 h-5" /></button>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#ff2d55] to-purple-600 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform border-2 border-white/10">
-            <User className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center cursor-pointer hover:scale-105 transition-transform border-2 border-white/10">
+            <Image src="/lizhi-avatar.png" alt="Lizhi Avatar" width={36} height={36} unoptimized className="object-cover" />
           </div>
         </div>
       </header>
@@ -96,9 +96,15 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {albums.map((album) => (
               <div key={album.id} className="group relative">
-                <Link href={`/player/${encodeURIComponent(album.name)}`}>
+                <Link href={`/player/${encodeURIComponent(album.name)}`} data-testid="home-album-link">
                   <div className="relative aspect-square mb-4 overflow-hidden rounded-2xl bg-neutral-900 shadow-lg group-hover:shadow-[#ff2d55]/20 group-hover:shadow-2xl transition-all duration-500">
-                    <Image src={album.coverPath} alt={album.name} fill unoptimized className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" />
+                    {album.coverPath ? (
+                      <Image src={album.coverPath} alt={album.name} fill unoptimized className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
+                        <Music className="w-16 h-16 text-white/10" />
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button 
                         onClick={(e) => { e.preventDefault(); startPlayingAlbum(album); }}
@@ -110,7 +116,9 @@ export default function Home() {
                   </div>
                 </Link>
                 <h4 className="font-bold text-lg text-white truncate group-hover:text-[#ff2d55] transition-colors mb-1">{album.name}</h4>
-                <p className="text-sm font-medium text-white/40">{album.songs.length} 首歌曲</p>
+                <p className="text-sm font-medium text-white/40">
+                  {album.year ? `${album.year} • ` : ''}{album.songs.length} 首歌曲
+                </p>
               </div>
             ))}
           </div>
