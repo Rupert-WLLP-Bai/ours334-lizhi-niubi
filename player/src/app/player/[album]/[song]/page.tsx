@@ -13,7 +13,7 @@ type PlayerParams = {
 
 export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
   const resolvedParams = use(props.params);
-
+  
   const albumName = useMemo(() => {
     try {
       return decodeURIComponent(resolvedParams.album);
@@ -21,6 +21,7 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
       return resolvedParams.album;
     }
   }, [resolvedParams.album]);
+
   const songTitle = useMemo(() => {
     try {
       return decodeURIComponent(resolvedParams.song);
@@ -47,8 +48,7 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
           setSong(foundSong || null);
         }
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      });
   }, [albumName, songTitle]);
 
   // Load lyrics
@@ -61,12 +61,8 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
           if (isMounted) {
             setLyrics(parseLyrics(data.lyrics || ""));
           }
-        })
-        .catch(() => {
-          if (isMounted) setLyrics([]);
         });
     } else {
-      // Use a timeout to make it "asynchronous" and avoid the lint error/performance warning
       const timeout = setTimeout(() => {
         if (isMounted) setLyrics([]);
       }, 0);
@@ -78,25 +74,33 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
     return () => { isMounted = false; };
   }, [song?.lyricPath]);
 
+  const hasLyrics = lyrics.length > 0;
+
   return (
     <div className="w-full max-w-6xl h-full mx-auto flex flex-col md:flex-row md:items-center px-6 md:px-12 md:gap-12 lg:gap-24 overflow-hidden">
       <div className="relative w-full h-full flex flex-col md:flex-row md:items-center overflow-hidden">
         
         {/* Cover View */}
         <div 
-          data-testid="player-cover-view"
-          className={`absolute inset-0 md:relative md:inset-auto md:w-auto md:flex-shrink-0 flex flex-col items-center md:items-start justify-center transition-all duration-500 ease-in-out cursor-pointer ${
-            mobileView === 'cover' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:translate-x-0 md:opacity-100'
-          }`}
-          onClick={() => setMobileView('lyrics')}
+          className={`absolute inset-0 md:relative md:inset-auto flex flex-col items-center justify-center transition-all duration-500 ease-in-out ${
+            !hasLyrics 
+              ? 'w-full md:w-full md:flex-shrink-0 opacity-100' 
+              : mobileView === 'cover' 
+                ? 'translate-x-0 opacity-100 md:w-auto md:flex-shrink-0' 
+                : '-translate-x-full opacity-0 md:translate-x-0 md:opacity-100 md:w-auto md:flex-shrink-0'
+          } ${hasLyrics ? 'cursor-pointer' : 'cursor-default'}`}
+          onClick={() => hasLyrics && setMobileView('lyrics')}
         >
-          <div className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-64 md:h-64 lg:w-[420px] lg:h-[420px] shadow-2xl">
+          <div className={`relative transition-all duration-700 shadow-2xl ${
+            !hasLyrics 
+              ? 'w-80 h-80 sm:w-96 sm:h-96 lg:w-[500px] lg:h-[500px]' 
+              : 'w-72 h-72 sm:w-80 sm:h-80 md:w-64 md:h-64 lg:w-[420px] lg:h-[420px]'
+          }`}>
             {song?.coverPath && (
               <Image
                 key={song.coverPath}
                 src={song.coverPath}
                 alt={song.title}
-                data-testid="player-cover-image"
                 fill
                 unoptimized
                 priority
@@ -105,25 +109,26 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
             )}
           </div>
 
-          <div className={`mt-6 md:mt-8 w-full text-center md:text-left transition-all duration-500 ${loading ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
-              <h2 className="text-3xl md:text-4xl font-bold truncate tracking-tight">{song?.title || "..."}</h2>
-              <p className="text-lg md:text-2xl text-white/40 font-medium truncate mt-1">{song?.album || "..."}</p>
+          <div className={`mt-8 md:mt-10 w-full text-center transition-all duration-500 ${!hasLyrics ? '' : 'md:text-left'} ${loading ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
+              <h2 className={`${!hasLyrics ? 'text-4xl md:text-6xl' : 'text-3xl md:text-4xl'} font-bold truncate tracking-tight`}>{song?.title || "..."}</h2>
+              <p className={`${!hasLyrics ? 'text-xl md:text-3xl' : 'text-lg md:text-2xl'} text-white/40 font-medium truncate mt-2`}>{song?.album || "..."}</p>
           </div>
         </div>
 
         {/* Lyrics View */}
-        <div 
-          data-testid="player-lyrics-view"
-          className={`absolute inset-0 md:relative md:inset-auto md:flex-1 h-full flex flex-col transition-all duration-500 ease-in-out ${
-            mobileView === 'lyrics' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:translate-x-0 md:opacity-100'
-          }`}
-        >
-           <Lyrics 
-             lyrics={lyrics} 
-             currentTime={currentTime} 
-             onBackToCover={() => setMobileView("cover")}
-           />
-        </div>
+        {hasLyrics && (
+          <div 
+            className={`absolute inset-0 md:relative md:inset-auto md:flex-1 h-full flex flex-col transition-all duration-500 ease-in-out ${
+              mobileView === 'lyrics' ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 md:translate-x-0 md:opacity-100'
+            }`}
+          >
+             <Lyrics 
+               lyrics={lyrics} 
+               currentTime={currentTime} 
+               onBackToCover={() => setMobileView("cover")}
+             />
+          </div>
+        )}
       </div>
     </div>
   );

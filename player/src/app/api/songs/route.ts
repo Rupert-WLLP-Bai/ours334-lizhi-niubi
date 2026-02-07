@@ -22,13 +22,17 @@ export interface Album {
   songs: Song[];
 }
 
+function stripKnownExtension(fileName: string): string {
+  return fileName.replace(/\.(flac|m4a|lrc)$/i, '');
+}
+
 function getAudioUrl(albumName: string, fileName: string): string {
-  const baseName = fileName.replace(/\.(flac|lrc)$/i, '');
+  const baseName = stripKnownExtension(fileName);
   return `/api/audio?album=${encodeURIComponent(albumName)}&song=${encodeURIComponent(baseName)}`;
 }
 
 function getLyricUrl(albumName: string, fileName: string): string {
-  const baseName = fileName.replace(/\.(flac|lrc)$/i, '');
+  const baseName = stripKnownExtension(fileName);
   return `/api/lyrics?album=${encodeURIComponent(albumName)}&song=${encodeURIComponent(baseName)}`;
 }
 
@@ -37,7 +41,7 @@ function getCoverUrl(albumName: string): string {
 }
 
 function extractSongTitle(fileName: string): string {
-  return fileName.replace(/^李志 - /, '').replace(/\.(flac|lrc)$/i, '');
+  return stripKnownExtension(fileName).replace(/^李志 - /, '');
 }
 
 function generateSongId(albumName: string, songTitle: string): string {
@@ -86,12 +90,13 @@ export async function GET() {
       const files = await fs.readdir(albumDir);
 
       for (const file of files) {
-        if (file.endsWith('.flac')) {
+        const lowerFile = file.toLowerCase();
+        if (lowerFile.endsWith('.flac') || lowerFile.endsWith('.m4a')) {
           const filePath = path.join(albumDir, file);
           const stat = await fs.stat(filePath);
           if (!stat.isFile()) continue;
 
-          const baseName = file.replace(/\.(flac|lrc)$/i, '');
+          const baseName = stripKnownExtension(file);
           const songTitle = extractSongTitle(file);
           const songId = generateSongId(albumName, songTitle);
           const hasLyric = files.includes(`${baseName}.lrc`);

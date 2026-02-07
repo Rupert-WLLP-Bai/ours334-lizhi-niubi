@@ -3,6 +3,51 @@ import { createReadStream } from 'fs';
 import { stat } from 'fs/promises';
 import { resolveAlbumFilePath } from '@/lib/albums';
 
+const SUPPORTED_AUDIO_EXTENSIONS = ['.flac', '.m4a'] as const;
+
+type ResolvedAudioFile =
+  | { audioPath: string; fileSize: number; contentType: string }
+  | null
+  | 'invalid';
+
+function getAudioContentType(extension: (typeof SUPPORTED_AUDIO_EXTENSIONS)[number]): string {
+  if (extension === '.m4a') return 'audio/mp4';
+  return 'audio/flac';
+}
+
+async function resolveAudioFile(album: string, song: string): Promise<ResolvedAudioFile> {
+  const candidates = SUPPORTED_AUDIO_EXTENSIONS.map(ext => ({
+    ext,
+    path: resolveAlbumFilePath(album, `${song}${ext}`),
+  }));
+
+  const validCandidates = candidates.filter(
+    (candidate): candidate is { ext: (typeof SUPPORTED_AUDIO_EXTENSIONS)[number]; path: string } =>
+      candidate.path !== null
+  );
+
+  if (validCandidates.length !== candidates.length) {
+    return 'invalid';
+  }
+
+  for (const candidate of validCandidates) {
+    try {
+      const stats = await stat(candidate.path);
+      if (stats.isFile()) {
+        return {
+          audioPath: candidate.path,
+          fileSize: stats.size,
+          contentType: getAudioContentType(candidate.ext),
+        };
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const album = searchParams.get('album');
@@ -12,14 +57,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing album or song' }, { status: 400 });
   }
 
-  const audioPath = resolveAlbumFilePath(album, `${song}.flac`);
-  if (!audioPath) {
+  const resolvedAudio = await resolveAudioFile(album, song);
+  if (resolvedAudio === 'invalid') {
     return NextResponse.json({ error: 'Invalid album or song' }, { status: 400 });
+  }
+  if (!resolvedAudio) {
+    return NextResponse.json({ error: 'Audio not found' }, { status: 404 });
   }
 
   try {
-    const stats = await stat(audioPath);
-    const fileSize = stats.size;
+    const { audioPath, fileSize, contentType } = resolvedAudio;
     const range = request.headers.get('range');
 
     if (range) {
@@ -94,7 +141,7 @@ export async function GET(request: NextRequest) {
           'Content-Range': `bytes ${start}-${end}/${fileSize}`,
           'Accept-Ranges': 'bytes',
           'Content-Length': chunksize.toString(),
-          'Content-Type': 'audio/flac',
+          'Content-Type': contentType,
         },
       });
     } else {
@@ -113,7 +160,7 @@ export async function GET(request: NextRequest) {
       return new NextResponse(stream, {
         headers: {
           'Content-Length': fileSize.toString(),
-          'Content-Type': 'audio/flac',
+          'Content-Type': contentType,
           'Accept-Ranges': 'bytes',
         },
       });
