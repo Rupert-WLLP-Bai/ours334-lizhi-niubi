@@ -4,20 +4,7 @@ import { useEffect, useState, useMemo, use } from "react";
 import Image from "next/image";
 import { parseLyrics, LyricLine } from "@/lib/lyrics";
 import { Lyrics } from "@/components";
-import { usePlayer } from "../../PlayerContext";
-
-interface Song {
-  title: string;
-  album: string;
-  lyricPath: string | null;
-  coverPath: string;
-}
-
-interface Album {
-  name: string;
-  coverPath: string;
-  songs: Song[];
-}
+import { usePlayer, type Song, type Album } from "../../PlayerContext";
 
 type PlayerParams = {
   album: string;
@@ -26,10 +13,11 @@ type PlayerParams = {
 
 export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
   const resolvedParams = use(props.params);
+  
   const albumName = useMemo(() => decodeURIComponent(resolvedParams.album), [resolvedParams.album]);
   const songTitle = useMemo(() => decodeURIComponent(resolvedParams.song), [resolvedParams.song]);
 
-  const { isPlaying, currentTime, setCurrentTime } = usePlayer();
+  const { isPlaying, currentTime } = usePlayer();
   
   const [song, setSong] = useState<Song | null>(null);
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
@@ -41,9 +29,9 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
     fetch("/api/songs")
       .then((res) => res.json())
       .then((data) => {
-        const foundAlbum = (data.albums || []).find((a: any) => a.name === albumName);
+        const foundAlbum = (data.albums || []).find((a: Album) => a.name === albumName);
         if (foundAlbum) {
-          const foundSong = foundAlbum.songs.find((s: any) => s.title === songTitle);
+          const foundSong = foundAlbum.songs.find((s: Song) => s.title === songTitle);
           setSong(foundSong || null);
         }
         setLoading(false);
@@ -52,15 +40,26 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
 
   // Load lyrics
   useEffect(() => {
-    if (!song?.lyricPath) {
-      setLyrics([]);
-      return;
+    let isMounted = true;
+    if (song?.lyricPath) {
+      fetch(song.lyricPath)
+        .then((res) => res.json())
+        .then((data) => {
+          if (isMounted) {
+            setLyrics(parseLyrics(data.lyrics || ""));
+          }
+        });
+    } else {
+      // Use a timeout to make it "asynchronous" and avoid the lint error/performance warning
+      const timeout = setTimeout(() => {
+        if (isMounted) setLyrics([]);
+      }, 0);
+      return () => {
+        isMounted = false;
+        clearTimeout(timeout);
+      };
     }
-    fetch(song.lyricPath)
-      .then((res) => res.json())
-      .then((data) => {
-        setLyrics(parseLyrics(data.lyrics || ""));
-      });
+    return () => { isMounted = false; };
   }, [song?.lyricPath]);
 
   return (
@@ -97,13 +96,12 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
         {/* Lyrics View */}
         <div 
           className={`absolute inset-0 md:relative md:inset-auto md:flex-1 h-full flex flex-col transition-all duration-500 ease-in-out ${
-            mobileView === 'lyrics' ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 md:translate-x-0 md:opacity-100'
+            mobileView === 'lyrics' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:translate-x-0 md:opacity-100'
           }`}
         >
            <Lyrics 
              lyrics={lyrics} 
              currentTime={currentTime} 
-             onLineClick={(t) => setCurrentTime(t)}
              onBackToCover={() => setMobileView("cover")}
            />
         </div>

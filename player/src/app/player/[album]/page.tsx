@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Play, ArrowLeft, Music, Heart, MoreHorizontal, Shuffle } from "lucide-react";
 
 interface Song {
@@ -69,7 +69,7 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
       {/* Header */}
       <header className="sticky top-0 z-50 px-6 py-6 backdrop-blur-md bg-black/40 border-b border-white/5 flex items-center justify-between">
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push('/')}
           className="p-2 rounded-full hover:bg-white/5 transition-colors"
         >
           <ArrowLeft className="w-6 h-6" />

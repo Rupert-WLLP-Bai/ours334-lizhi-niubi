@@ -1,19 +1,26 @@
-import type { Metadata } from "next";
 import "./globals.css";
+import { PlayerProvider } from "./player/PlayerContext";
+import { GlobalPlayer } from "@/components/GlobalPlayer";
 
-export const metadata: Metadata = {
-  title: "李志音乐播放器",
-  description: "模仿 iPhone 原生 Music 样式的李志音乐播放器",
+export const metadata = {
+  title: "LIZHI MUSIC",
+  description: "Modern Music Player",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="zh-CN">
-      <body className="antialiased">{children}</body>
+    <html lang="en">
+      <body className="bg-black overflow-x-hidden">
+        <PlayerProvider>
+          <GlobalPlayer>
+            {children}
+          </GlobalPlayer>
+        </PlayerProvider>
+      </body>
     </html>
   );
 }

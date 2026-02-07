@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
-import { promises as fs, createReadStream, statSync } from 'fs';
+import { createReadStream, statSync } from 'fs';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

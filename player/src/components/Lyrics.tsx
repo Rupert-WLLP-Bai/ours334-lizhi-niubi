@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react'
 import { Play } from 'lucide-react';
 import styles from './Lyrics.module.css';
 import { formatTime } from '@/lib/lyrics';
+import { usePlayer } from '@/app/player/PlayerContext';
 
 interface LyricLine {
   time: number;
@@ -11,7 +12,6 @@ interface LyricLine {
 interface LyricsProps {
   lyrics: LyricLine[];
   currentTime: number;
-  onLineClick?: (time: number) => void;
   className?: string;
   onBackToCover?: () => void;
 }
@@ -19,10 +19,10 @@ interface LyricsProps {
 export const Lyrics: React.FC<LyricsProps> = ({
   lyrics,
   currentTime,
-  onLineClick,
   className = '',
   onBackToCover,
 }) => {
+  const { seekTo } = usePlayer();
   const containerRef = useRef<HTMLDivElement>(null);
   const activeLineRef = useRef<HTMLDivElement>(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
@@ -42,12 +42,10 @@ export const Lyrics: React.FC<LyricsProps> = ({
     return activeIdx;
   }, [currentTime, lyrics]);
 
-  // Handle scroll to active line
   useEffect(() => {
     if (activeIndex >= 0 && activeLineRef.current && containerRef.current && !isUserScrolling) {
       const container = containerRef.current;
       const activeLine = activeLineRef.current;
-      
       const targetScroll = activeLine.offsetTop - (container.clientHeight / 2) + (activeLine.clientHeight / 2);
 
       isAutoScrollingRef.current = true;
@@ -56,7 +54,6 @@ export const Lyrics: React.FC<LyricsProps> = ({
         behavior: 'smooth',
       });
 
-      // Clear the auto-scrolling flag after the smooth scroll finishes (approx 500ms)
       setTimeout(() => {
         isAutoScrollingRef.current = false;
       }, 600);
@@ -65,14 +62,9 @@ export const Lyrics: React.FC<LyricsProps> = ({
 
   const handleScroll = useCallback(() => {
     if (!containerRef.current || lyrics.length === 0 || isAutoScrollingRef.current) return;
-    
-    // Set user scrolling state
     setIsUserScrolling(true);
     
-    // Use requestAnimationFrame to throttle calculation
     const container = containerRef.current;
-    
-    // Only calculate closest line every few frames to save performance
     const scrollCenter = container.scrollTop + container.clientHeight / 2;
     const lines = container.getElementsByClassName(styles.lyricLine);
     
@@ -89,20 +81,19 @@ export const Lyrics: React.FC<LyricsProps> = ({
       }
     }
     
-    // Only update state if index actually changed to prevent unnecessary re-renders
     setScrolledLineIndex((prev) => (prev === closestIndex ? prev : closestIndex));
 
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     scrollTimeoutRef.current = setTimeout(() => {
       setIsUserScrolling(false);
       setScrolledLineIndex(null);
-    }, 1500); // Shorter timeout for more responsive auto-scroll recovery
+    }, 1500);
   }, [lyrics]);
 
   const handleConfirmSeek = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (scrolledLineIndex !== null && onLineClick) {
-      onLineClick(lyrics[scrolledLineIndex].time);
+    if (scrolledLineIndex !== null) {
+      seekTo(lyrics[scrolledLineIndex].time);
       setIsUserScrolling(false);
       setScrolledLineIndex(null);
     }
@@ -115,14 +106,11 @@ export const Lyrics: React.FC<LyricsProps> = ({
         className={`${styles.lyricsContainer} scrollbar-hide`}
         onScroll={handleScroll}
         onClick={() => {
-          // On mobile, clicking anywhere that isn't the seek button returns to cover
           if (onBackToCover) onBackToCover();
         }}
       >
         <div className={styles.lyricsWrapper}>
-          {/* Spacer - reduced to 30vh to bring first line up */}
           <div className="h-[30vh] w-full flex-shrink-0 pointer-events-none" />
-          
           {lyrics.map((line, index) => (
             <div
               key={`${line.time}-${index}`}
@@ -137,13 +125,10 @@ export const Lyrics: React.FC<LyricsProps> = ({
               <span className={styles.lyricText}>{line.text}</span>
             </div>
           ))}
-
-          {/* Bottom spacer */}
           <div className="h-[40vh] w-full flex-shrink-0 pointer-events-none" />
         </div>
       </div>
 
-      {/* Seek Indicator Line */}
       {scrolledLineIndex !== null && (
         <div className={styles.seekIndicator}>
           <div className={styles.seekLine} />
