@@ -1,13 +1,119 @@
 {
-  "generatedAt": "2026-02-07T14:54:38.914Z",
-  "albumCount": 10,
-  "songCount": 104,
+  "generatedAt": "2026-02-07T15:44:28.026Z",
+  "albumCount": 14,
+  "songCount": 166,
   "albums": [
+    {
+      "id": "李志、电声与管弦乐",
+      "name": "李志、电声与管弦乐",
+      "year": "2017-05-16",
+      "hasCover": true,
+      "coverFileName": "Cover.jpg",
+      "songs": [
+        {
+          "id": "李志、电声与管弦乐-序曲",
+          "title": "序曲",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "序曲",
+          "audioFileName": "序曲.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-杭州",
+          "title": "杭州",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "杭州",
+          "audioFileName": "杭州.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-尽头",
+          "title": "尽头",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "尽头",
+          "audioFileName": "尽头.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-定西",
+          "title": "定西",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "定西",
+          "audioFileName": "定西.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-春末的南方城市",
+          "title": "春末的南方城市",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "春末的南方城市",
+          "audioFileName": "春末的南方城市.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-黑色信封",
+          "title": "黑色信封",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "黑色信封",
+          "audioFileName": "黑色信封.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-铅笔",
+          "title": "铅笔",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "铅笔",
+          "audioFileName": "铅笔.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-和你在一起",
+          "title": "和你在一起",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "和你在一起",
+          "audioFileName": "和你在一起.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-墙上的向日葵",
+          "title": "墙上的向日葵",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "墙上的向日葵",
+          "audioFileName": "墙上的向日葵.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-大象",
+          "title": "大象",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "大象",
+          "audioFileName": "大象.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-门",
+          "title": "门",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "门",
+          "audioFileName": "门.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "李志、电声与管弦乐-回答",
+          "title": "回答",
+          "album": "李志、电声与管弦乐",
+          "audioBaseName": "回答",
+          "audioFileName": "回答.flac",
+          "hasLyric": false
+        }
+      ]
+    },
     {
       "id": "在每一条伤心的应天大街上",
       "name": "在每一条伤心的应天大街上",
       "year": "2016-11-20",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "在每一条伤心的应天大街上-一个夜晚",
@@ -80,6 +186,7 @@
       "name": "8",
       "year": "2016-10-18",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "8-hey-jude",
@@ -156,10 +263,100 @@
       ]
     },
     {
+      "id": "看见-李志2015巡回演唱会",
+      "name": "看见  李志2015巡回演唱会",
+      "year": "2015-06-27",
+      "hasCover": true,
+      "coverFileName": "Cover.jpg",
+      "songs": [
+        {
+          "id": "看见-李志2015巡回演唱会-看见-(2015-live-看见版)",
+          "title": "看见 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "看见 (2015 Live 看见版)",
+          "audioFileName": "看见 (2015 Live 看见版).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "看见-李志2015巡回演唱会-黑色信封-(2015-live-看见版)",
+          "title": "黑色信封 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "黑色信封 (2015 Live 看见版)",
+          "audioFileName": "黑色信封 (2015 Live 看见版).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "看见-李志2015巡回演唱会-苍井空-(2015-live-看见版)",
+          "title": "苍井空 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "苍井空 (2015 Live 看见版)",
+          "audioFileName": "苍井空 (2015 Live 看见版).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "看见-李志2015巡回演唱会-春末的南方城市-(2015-live-看见版)",
+          "title": "春末的南方城市 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "春末的南方城市 (2015 Live 看见版)",
+          "audioFileName": "春末的南方城市 (2015 Live 看见版).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "看见-李志2015巡回演唱会-你离开了南京，从此没有人和我说话-(2015-live-看见版)",
+          "title": "你离开了南京，从此没有人和我说话 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "你离开了南京，从此没有人和我说话 (2015 Live 看见版)",
+          "audioFileName": "你离开了南京，从此没有人和我说话 (2015 Live 看见版).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "看见-李志2015巡回演唱会-下雨-(2015-live-看见版)",
+          "title": "下雨 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "下雨 (2015 Live 看见版)",
+          "audioFileName": "下雨 (2015 Live 看见版).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "看见-李志2015巡回演唱会-热河-(2015-live-看见版)",
+          "title": "热河 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "热河 (2015 Live 看见版)",
+          "audioFileName": "热河 (2015 Live 看见版).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "看见-李志2015巡回演唱会-董卓瑶-(2015-live-看见版)",
+          "title": "董卓瑶 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "董卓瑶 (2015 Live 看见版)",
+          "audioFileName": "董卓瑶 (2015 Live 看见版).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "看见-李志2015巡回演唱会-离婚-(2015-live-看见版)",
+          "title": "离婚 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "离婚 (2015 Live 看见版)",
+          "audioFileName": "离婚 (2015 Live 看见版).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "看见-李志2015巡回演唱会-梵高先生-(2015-live-看见版)",
+          "title": "梵高先生 (2015 Live 看见版)",
+          "album": "看见  李志2015巡回演唱会",
+          "audioBaseName": "梵高先生 (2015 Live 看见版)",
+          "audioFileName": "梵高先生 (2015 Live 看见版).flac",
+          "hasLyric": false
+        }
+      ]
+    },
+    {
       "id": "1701",
       "name": "1701",
       "year": "2014-05-22",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "1701-不多",
@@ -228,10 +425,349 @@
       ]
     },
     {
+      "id": "108个关键词",
+      "name": "108个关键词",
+      "year": "2013",
+      "hasCover": true,
+      "coverFileName": "Cover.jpg",
+      "songs": [
+        {
+          "id": "108个关键词-她+我们不能失去信仰+1990年的春",
+          "title": "她+我们不能失去信仰+1990年的春",
+          "album": "108个关键词",
+          "audioBaseName": "她+我们不能失去信仰+1990年的春",
+          "audioFileName": "她+我们不能失去信仰+1990年的春.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-董卓瑶",
+          "title": "董卓瑶",
+          "album": "108个关键词",
+          "audioBaseName": "董卓瑶",
+          "audioFileName": "董卓瑶.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-黑色信封",
+          "title": "黑色信封",
+          "album": "108个关键词",
+          "audioBaseName": "黑色信封",
+          "audioFileName": "黑色信封.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-下雨",
+          "title": "下雨",
+          "album": "108个关键词",
+          "audioBaseName": "下雨",
+          "audioFileName": "下雨.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-关于郑州的记忆",
+          "title": "关于郑州的记忆",
+          "album": "108个关键词",
+          "audioBaseName": "关于郑州的记忆",
+          "audioFileName": "关于郑州的记忆.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-来了",
+          "title": "来了",
+          "album": "108个关键词",
+          "audioBaseName": "来了",
+          "audioFileName": "来了.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-倒影",
+          "title": "倒影",
+          "album": "108个关键词",
+          "audioBaseName": "倒影",
+          "audioFileName": "倒影.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-忽然",
+          "title": "忽然",
+          "album": "108个关键词",
+          "audioBaseName": "忽然",
+          "audioFileName": "忽然.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-墙上的向日葵",
+          "title": "墙上的向日葵",
+          "album": "108个关键词",
+          "audioBaseName": "墙上的向日葵",
+          "audioFileName": "墙上的向日葵.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-阿兰",
+          "title": "阿兰",
+          "album": "108个关键词",
+          "audioBaseName": "阿兰",
+          "audioFileName": "阿兰.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-和你在一起",
+          "title": "和你在一起",
+          "album": "108个关键词",
+          "audioBaseName": "和你在一起",
+          "audioFileName": "和你在一起.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-尽头",
+          "title": "尽头",
+          "album": "108个关键词",
+          "audioBaseName": "尽头",
+          "audioFileName": "尽头.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-青春",
+          "title": "青春",
+          "album": "108个关键词",
+          "audioBaseName": "青春",
+          "audioFileName": "青春.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-人民不需要自由",
+          "title": "人民不需要自由",
+          "album": "108个关键词",
+          "audioBaseName": "人民不需要自由",
+          "audioFileName": "人民不需要自由.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-山阴路的夏天",
+          "title": "山阴路的夏天",
+          "album": "108个关键词",
+          "audioBaseName": "山阴路的夏天",
+          "audioFileName": "山阴路的夏天.mp3",
+          "hasLyric": false
+        },
+        {
+          "id": "108个关键词-姐姐",
+          "title": "姐姐",
+          "album": "108个关键词",
+          "audioBaseName": "姐姐",
+          "audioFileName": "姐姐.mp3",
+          "hasLyric": false
+        }
+      ]
+    },
+    {
+      "id": "imagine-live",
+      "name": "Imagine Live",
+      "year": "2012",
+      "hasCover": true,
+      "coverFileName": "Cover.jpg",
+      "songs": [
+        {
+          "id": "imagine-live-青春",
+          "title": "青春",
+          "album": "Imagine Live",
+          "audioBaseName": "青春",
+          "audioFileName": "青春.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-离婚",
+          "title": "离婚",
+          "album": "Imagine Live",
+          "audioBaseName": "离婚",
+          "audioFileName": "离婚.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-我们不能失去信仰",
+          "title": "我们不能失去信仰",
+          "album": "Imagine Live",
+          "audioBaseName": "我们不能失去信仰",
+          "audioFileName": "我们不能失去信仰.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-喀纳斯",
+          "title": "喀纳斯",
+          "album": "Imagine Live",
+          "audioBaseName": "喀纳斯",
+          "audioFileName": "喀纳斯.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-天空之城",
+          "title": "天空之城",
+          "album": "Imagine Live",
+          "audioBaseName": "天空之城",
+          "audioFileName": "天空之城.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-苍井空",
+          "title": "苍井空",
+          "album": "Imagine Live",
+          "audioBaseName": "苍井空",
+          "audioFileName": "苍井空.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-关于郑州的记忆",
+          "title": "关于郑州的记忆",
+          "album": "Imagine Live",
+          "audioBaseName": "关于郑州的记忆",
+          "audioFileName": "关于郑州的记忆.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-海的女儿",
+          "title": "海的女儿",
+          "album": "Imagine Live",
+          "audioBaseName": "海的女儿",
+          "audioFileName": "海的女儿.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-她",
+          "title": "她",
+          "album": "Imagine Live",
+          "audioBaseName": "她",
+          "audioFileName": "她.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-家乡",
+          "title": "家乡",
+          "album": "Imagine Live",
+          "audioBaseName": "家乡",
+          "audioFileName": "家乡.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-结婚",
+          "title": "结婚",
+          "album": "Imagine Live",
+          "audioBaseName": "结婚",
+          "audioFileName": "结婚.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-红色气球",
+          "title": "红色气球",
+          "album": "Imagine Live",
+          "audioBaseName": "红色气球",
+          "audioFileName": "红色气球.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-被禁忌的游戏",
+          "title": "被禁忌的游戏",
+          "album": "Imagine Live",
+          "audioBaseName": "被禁忌的游戏",
+          "audioFileName": "被禁忌的游戏.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-寻找",
+          "title": "寻找",
+          "album": "Imagine Live",
+          "audioBaseName": "寻找",
+          "audioFileName": "寻找.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-斜",
+          "title": "斜",
+          "album": "Imagine Live",
+          "audioBaseName": "斜",
+          "audioFileName": "斜.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-和你在一起",
+          "title": "和你在一起",
+          "album": "Imagine Live",
+          "audioBaseName": "和你在一起",
+          "audioFileName": "和你在一起.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-门",
+          "title": "门",
+          "album": "Imagine Live",
+          "audioBaseName": "门",
+          "audioFileName": "门.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-尽头",
+          "title": "尽头",
+          "album": "Imagine Live",
+          "audioBaseName": "尽头",
+          "audioFileName": "尽头.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-女神",
+          "title": "女神",
+          "album": "Imagine Live",
+          "audioBaseName": "女神",
+          "audioFileName": "女神.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-杭州",
+          "title": "杭州",
+          "album": "Imagine Live",
+          "audioBaseName": "杭州",
+          "audioFileName": "杭州.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-翁庆年的六英镑",
+          "title": "翁庆年的六英镑",
+          "album": "Imagine Live",
+          "audioBaseName": "翁庆年的六英镑",
+          "audioFileName": "翁庆年的六英镑.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-秋天的老狼",
+          "title": "秋天的老狼",
+          "album": "Imagine Live",
+          "audioBaseName": "秋天的老狼",
+          "audioFileName": "秋天的老狼.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-1990的春天",
+          "title": "1990的春天",
+          "album": "Imagine Live",
+          "audioBaseName": "1990的春天",
+          "audioFileName": "1990的春天.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "imagine-live-结尾",
+          "title": "结尾",
+          "album": "Imagine Live",
+          "audioBaseName": "结尾",
+          "audioFileName": "结尾.flac",
+          "hasLyric": false
+        }
+      ]
+    },
+    {
       "id": "f",
       "name": "F",
       "year": "2011-09-28",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "f-寻找",
@@ -312,6 +848,7 @@
       "name": "你好，郑州",
       "year": "2010-09-01",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "你好，郑州-墙上的向日葵",
@@ -400,6 +937,7 @@
       "name": "我爱南京",
       "year": "2009-10-16",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "我爱南京-意味",
@@ -536,6 +1074,7 @@
       "name": "工体东路没有人",
       "year": "2009-01-22",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "工体东路没有人-forbidden-game-(被禁忌的游戏)-[live]",
@@ -672,6 +1211,7 @@
       "name": "这个世界会好吗",
       "year": "2006-11-20",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "这个世界会好吗-妈妈",
@@ -760,6 +1300,7 @@
       "name": "梵高先生",
       "year": "2005-12-25",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "梵高先生-你离开了南京，从此没有人和我说话",
@@ -840,6 +1381,7 @@
       "name": "被禁忌的游戏",
       "year": "2004-12-01",
       "hasCover": true,
+      "coverFileName": "cover.jpg",
       "songs": [
         {
           "id": "被禁忌的游戏-黑色信封",

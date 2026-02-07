@@ -5,7 +5,7 @@ import { resolveAlbumFilePath } from "@/lib/albums";
 import { findSongInCatalog, loadAlbumCatalogIndex } from "@/lib/albumCatalog";
 import { buildCloudAssetUrl, isCloudAssetSource } from "@/lib/assetSource";
 
-const SUPPORTED_AUDIO_EXTENSIONS = [".flac", ".m4a"] as const;
+const SUPPORTED_AUDIO_EXTENSIONS = [".flac", ".m4a", ".mp3"] as const;
 
 type ResolvedAudioFile =
   | { audioPath: string; fileSize: number; contentType: string }
@@ -14,6 +14,7 @@ type ResolvedAudioFile =
 
 function getAudioContentType(extension: (typeof SUPPORTED_AUDIO_EXTENSIONS)[number]): string {
   if (extension === ".m4a") return "audio/mp4";
+  if (extension === ".mp3") return "audio/mpeg";
   return "audio/flac";
 }
 

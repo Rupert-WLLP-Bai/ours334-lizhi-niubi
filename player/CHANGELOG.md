@@ -51,3 +51,30 @@
 - `npm run test:run` (16 tests passed)
 - `npm run lint`
 - `npm run build`
+
+### 2026-02-07 (mp3 + Cover.jpg compatibility)
+
+### Changed
+- Updated `src/lib/albumCatalog.ts`
+  - Added `.mp3` into supported audio extensions for catalog scan
+  - Added case-insensitive cover detection and persisted `coverFileName`
+- Updated `src/app/api/audio/route.ts`
+  - Added `.mp3` lookup in local mode
+  - Added `audio/mpeg` content type for mp3 responses
+- Updated `src/app/api/covers/route.ts`
+  - Local mode now supports both `cover.jpg` and `Cover.jpg`
+  - Cloud mode now uses `coverFileName` from index to avoid case mismatch
+- Updated `scripts/build-album-index.mjs`
+  - Added `.mp3` scan support
+  - Added `coverFileName` output in `src/data/albums-index.json`
+- Updated `scripts/upload-albums-s3.sh`
+  - Added upload sync for `*.mp3`
+  - Added upload sync for both `cover.jpg` and `Cover.jpg`
+- Updated `src/lib/music.ts`
+  - Added `.mp3` compatibility in legacy local scanner
+- Regenerated `src/data/albums-index.json`
+  - Current result: 14 albums, 166 songs
+
+### Verified
+- `npm run test:run` (16 tests passed)
+- `npm run build` (pass)

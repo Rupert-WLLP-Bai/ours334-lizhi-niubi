@@ -74,9 +74,11 @@ fi
 # Run by file type so metadata is correct and consistent.
 sync_group "*.flac" "audio/flac" "public, max-age=31536000, immutable"
 sync_group "*.m4a" "audio/mp4" "public, max-age=31536000, immutable"
+sync_group "*.mp3" "audio/mpeg" "public, max-age=31536000, immutable"
 sync_group "*.lrc" "text/plain; charset=utf-8" "public, max-age=300"
 sync_group "info.json" "application/json; charset=utf-8" "public, max-age=300"
 sync_group "cover.jpg" "image/jpeg" "public, max-age=31536000, immutable"
+sync_group "Cover.jpg" "image/jpeg" "public, max-age=31536000, immutable"
 
 echo "Incremental sync finished."
 echo "Target: ${S3_TARGET}"

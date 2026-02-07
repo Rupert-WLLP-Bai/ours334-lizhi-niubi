@@ -39,9 +39,9 @@ export async function getAlbums(): Promise<Album[]> {
         const songs: Song[] = [];
 
         for (const file of files) {
-          if (file.endsWith('.flac')) {
-            const title = file.replace('.flac', '');
-            const baseName = file.replace('.flac', '');
+          if (/\.(flac|m4a|mp3)$/i.test(file)) {
+            const title = file.replace(/\.(flac|m4a|mp3)$/i, '');
+            const baseName = file.replace(/\.(flac|m4a|mp3)$/i, '');
             const lyricFile = files.find(f => f === `${baseName}.lrc`);
 
             songs.push({

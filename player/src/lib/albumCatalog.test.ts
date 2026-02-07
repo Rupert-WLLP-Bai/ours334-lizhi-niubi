@@ -17,6 +17,7 @@ const sampleIndex: AlbumCatalogIndex = {
       name: "F",
       year: "2018-01-01",
       hasCover: true,
+      coverFileName: "cover.jpg",
       songs: [
         {
           id: "f-门",
@@ -43,6 +44,7 @@ describe("albumCatalog helpers", () => {
   it("removes known extensions", () => {
     expect(stripKnownExtension("a.flac")).toBe("a");
     expect(stripKnownExtension("a.m4a")).toBe("a");
+    expect(stripKnownExtension("a.mp3")).toBe("a");
     expect(stripKnownExtension("a.lrc")).toBe("a");
   });
 

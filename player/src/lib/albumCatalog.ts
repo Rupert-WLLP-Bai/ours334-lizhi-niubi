@@ -1,7 +1,8 @@
 import { promises as fs } from "fs";
 import path from "path";
 
-export const SUPPORTED_AUDIO_EXTENSIONS = [".flac", ".m4a"] as const;
+export const SUPPORTED_AUDIO_EXTENSIONS = [".flac", ".m4a", ".mp3"] as const;
+export const SUPPORTED_COVER_FILE_NAMES = ["cover.jpg", "Cover.jpg"] as const;
 
 export interface AlbumMetadata {
   year?: string;
@@ -22,6 +23,7 @@ export interface CatalogAlbum {
   name: string;
   year: string;
   hasCover: boolean;
+  coverFileName: string | null;
   songs: CatalogSong[];
 }
 
@@ -42,7 +44,7 @@ export const DEFAULT_ALBUM_INDEX_PATH = path.resolve(
 let cachedDefaultIndex: AlbumCatalogIndex | null = null;
 
 export function stripKnownExtension(fileName: string): string {
-  return fileName.replace(/\.(flac|m4a|lrc)$/i, "");
+  return fileName.replace(/\.(flac|m4a|mp3|lrc)$/i, "");
 }
 
 export function extractSongTitle(fileName: string): string {
@@ -82,6 +84,13 @@ async function readAlbumMetadata(albumDir: string): Promise<AlbumMetadata> {
 function isSupportedAudioFile(fileName: string): boolean {
   const lower = fileName.toLowerCase();
   return SUPPORTED_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
+}
+
+function resolveCoverFileName(files: string[]): string | null {
+  for (const fileName of files) {
+    if (fileName.toLowerCase() === "cover.jpg") return fileName;
+  }
+  return null;
 }
 
 function sortSongsByMetadataOrder(songs: CatalogSong[], order: string[] | undefined): CatalogSong[] {
@@ -136,15 +145,9 @@ export async function scanAlbumsDirectory(albumsDir: string): Promise<CatalogAlb
     const albumDir = path.join(albumsDir, albumName);
     const metadata = await readAlbumMetadata(albumDir);
 
-    let hasCover = false;
-    try {
-      const coverStats = await fs.stat(path.join(albumDir, "cover.jpg"));
-      hasCover = coverStats.isFile();
-    } catch {
-      hasCover = false;
-    }
-
     const files = await fs.readdir(albumDir);
+    const coverFileName = resolveCoverFileName(files);
+    const hasCover = coverFileName !== null;
     const filesLower = new Set(files.map(fileName => fileName.toLowerCase()));
     const songs: CatalogSong[] = [];
 
@@ -173,6 +176,7 @@ export async function scanAlbumsDirectory(albumsDir: string): Promise<CatalogAlb
       name: albumName,
       year: metadata.year || "",
       hasCover,
+      coverFileName,
       songs: sortSongsByMetadataOrder(songs, metadata.order),
     });
   }

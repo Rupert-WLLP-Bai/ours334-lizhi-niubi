@@ -3,7 +3,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const SUPPORTED_AUDIO_EXTENSIONS = [".flac", ".m4a"];
+const SUPPORTED_AUDIO_EXTENSIONS = [".flac", ".m4a", ".mp3"];
 const projectRoot = process.cwd();
 const albumsDir = process.env.ALBUMS_SOURCE_DIR
   ? path.resolve(projectRoot, process.env.ALBUMS_SOURCE_DIR)
@@ -13,7 +13,7 @@ const outputPath = process.env.ALBUM_INDEX_OUTPUT
   : path.resolve(projectRoot, "src", "data", "albums-index.json");
 
 function stripKnownExtension(fileName) {
-  return fileName.replace(/\.(flac|m4a|lrc)$/i, "");
+  return fileName.replace(/\.(flac|m4a|mp3|lrc)$/i, "");
 }
 
 function extractSongTitle(fileName) {
@@ -97,6 +97,13 @@ function isAudioFile(fileName) {
   return SUPPORTED_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
 }
 
+function resolveCoverFileName(files) {
+  for (const fileName of files) {
+    if (fileName.toLowerCase() === "cover.jpg") return fileName;
+  }
+  return null;
+}
+
 async function scanAlbumsDirectory(root) {
   const entries = await fs.readdir(root, { withFileTypes: true });
   const albums = [];
@@ -108,15 +115,9 @@ async function scanAlbumsDirectory(root) {
     const albumDir = path.join(root, albumName);
     const metadata = await readMetadata(albumDir);
 
-    let hasCover = false;
-    try {
-      const coverStats = await fs.stat(path.join(albumDir, "cover.jpg"));
-      hasCover = coverStats.isFile();
-    } catch {
-      hasCover = false;
-    }
-
     const files = await fs.readdir(albumDir);
+    const coverFileName = resolveCoverFileName(files);
+    const hasCover = coverFileName !== null;
     const filesLower = new Set(files.map(fileName => fileName.toLowerCase()));
     const songs = [];
 
@@ -144,6 +145,7 @@ async function scanAlbumsDirectory(root) {
       name: albumName,
       year: metadata.year || "",
       hasCover,
+      coverFileName,
       songs: sortSongsByMetadataOrder(songs, metadata.order),
     });
   }

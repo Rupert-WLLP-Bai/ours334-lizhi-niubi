@@ -4,16 +4,33 @@ import { resolveAlbumFilePath } from "@/lib/albums";
 import { findAlbumInCatalog, loadAlbumCatalogIndex } from "@/lib/albumCatalog";
 import { buildCloudAssetUrl, isCloudAssetSource } from "@/lib/assetSource";
 
+const COVER_FILE_CANDIDATES = ["cover.jpg", "Cover.jpg"] as const;
+
 async function resolveCloudCoverRedirect(album: string): Promise<string | null> {
   const index = await loadAlbumCatalogIndex();
   const albumRecord = findAlbumInCatalog(index, album);
   if (!albumRecord || !albumRecord.hasCover) return null;
 
-  const url = buildCloudAssetUrl(album, "cover.jpg");
+  const coverFileName = albumRecord.coverFileName || "cover.jpg";
+  const url = buildCloudAssetUrl(album, coverFileName);
   if (!url) {
     throw new Error("ASSET_BASE_URL is missing for cloud cover mode");
   }
   return url;
+}
+
+async function resolveLocalCoverFile(album: string): Promise<Buffer | null> {
+  for (const fileName of COVER_FILE_CANDIDATES) {
+    const coverPath = resolveAlbumFilePath(album, fileName);
+    if (!coverPath) continue;
+
+    try {
+      return await fs.readFile(coverPath);
+    } catch {
+      continue;
+    }
+  }
+  return null;
 }
 
 export async function GET(request: NextRequest) {
@@ -37,14 +54,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const coverPath = resolveAlbumFilePath(album, "cover.jpg");
-  if (!coverPath) {
-    return NextResponse.json({ error: "Invalid album" }, { status: 400 });
-  }
-
   try {
-    const file = await fs.readFile(coverPath);
-    return new NextResponse(file, {
+    const file = await resolveLocalCoverFile(album);
+    if (!file) {
+      return NextResponse.json({ error: "Cover not found" }, { status: 404 });
+    }
+    return new NextResponse(new Uint8Array(file), {
       headers: {
         "Content-Type": "image/jpeg",
         "Cache-Control": "public, max-age=31536000",
