@@ -1,4 +1,15 @@
-lizhi-lyrics/
+# Keep lyrics trackable, ignore large audio binaries under albums
+lizhi-lyrics/albums/**/*.flac
+lizhi-lyrics/albums/**/*.m4a
+lizhi-lyrics/albums/**/*.mp3
+lizhi-lyrics/albums/**/*.wav
+lizhi-lyrics/albums/**/*.aac
+lizhi-lyrics/albums/**/*.ogg
+lizhi-lyrics/albums/**/*.ape
+lizhi-lyrics/albums/**/*.alac
+lizhi-lyrics/albums/**/*.wma
+lizhi-lyrics/albums/**/*.aiff
+lizhi-lyrics/albums/**/*:Zone.Identifier
 node_modules/
 .next/
 public/
