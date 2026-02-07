@@ -13,3 +13,4 @@ public/
 playwright-report/
 test-results/
 tsconfig.tsbuildinfo 
+player/data/

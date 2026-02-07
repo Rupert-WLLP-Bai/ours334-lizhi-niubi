@@ -74,96 +74,102 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
       <div className="fixed top-0 left-0 w-full h-[600px] bg-gradient-to-b from-[#ff2d55]/10 to-transparent pointer-events-none -z-10 blur-3xl opacity-50" />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 px-6 py-6 backdrop-blur-md bg-black/40 border-b border-white/5 flex items-center justify-between">
-        <button
-          onClick={() => router.push('/')}
-          className="p-2 rounded-full hover:bg-white/5 transition-colors"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <h2 className="text-sm font-bold uppercase tracking-widest text-white/60">专辑详情</h2>
-        <button className="p-2 rounded-full hover:bg-white/5 transition-colors">
-          <MoreHorizontal className="w-6 h-6" />
-        </button>
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-black/40 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <button
+            onClick={() => router.push('/')}
+            className="p-2 rounded-full hover:bg-white/5 transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-white/60">专辑详情</h2>
+          <button className="p-2 rounded-full hover:bg-white/5 transition-colors">
+            <MoreHorizontal className="w-6 h-6" />
+          </button>
+        </div>
       </header>
 
-      {/* Album Hero */}
-      <div className="px-6 py-12 md:py-20 flex flex-col md:flex-row items-center md:items-end gap-10 md:gap-16">
-        <div className="relative w-64 h-64 md:w-80 md:h-80 group">
-          <div className="absolute inset-0 bg-white/5 rounded-3xl shadow-2xl transition-all duration-500 group-hover:scale-105 shadow-[0_20px_50px_rgba(255,45,85,0.2)]">
-            {album.coverPath ? (
-              <Image
-                src={album.coverPath}
-                alt={album.name}
-                fill
-                unoptimized
-                className="rounded-3xl object-cover"
-              />
-            ) : (
-              <div className="flex items-center justify-center w-full h-full">
-                <Music className="w-20 h-20 text-white/10" />
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <div className="flex-1 text-center md:text-left">
-          <span className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest mb-4">Album</span>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight">{album.name}</h1>
-          <div className="flex items-center justify-center md:justify-start gap-4 mb-8">
-             <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20 shadow-lg">
-                <Image src="/lizhi-avatar.png" alt="Artist Avatar" width={40} height={40} unoptimized className="object-cover" />
-             </div>
-             <span className="font-bold text-lg">李志</span>
-             <span className="text-white/40">•</span>
-             <span className="text-white/40">{album.year ? `${album.year} • ` : ''}{album.songs.length} 首歌曲</span>
+      <div className="max-w-7xl mx-auto">
+        {/* Album Hero */}
+        <div className="px-6 py-12 md:py-20 flex flex-col md:flex-row items-center md:items-end gap-10 md:gap-16">
+          <div className="relative w-64 h-64 md:w-80 md:h-80 group">
+            <div className="absolute inset-0 bg-white/5 shadow-2xl transition-all duration-500 group-hover:scale-105 shadow-[0_20px_50px_rgba(255,45,85,0.2)]">
+              {album.coverPath ? (
+                <Image
+                  src={album.coverPath}
+                  alt={album.name}
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full">
+                  <Music className="w-20 h-20 text-white/10" />
+                </div>
+              )}
+            </div>
           </div>
           
-          <div className="flex items-center justify-center md:justify-start gap-4">
-             <button className="px-10 py-4 rounded-full bg-[#ff2d55] text-white font-bold hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-[0_10px_30px_rgba(255,45,85,0.4)]">
-                <Play className="w-5 h-5 fill-current" /> 播放全部
-             </button>
-             <button className="p-4 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                <Shuffle className="w-5 h-5" />
-             </button>
-             <button className="p-4 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                <Heart className="w-5 h-5" />
-             </button>
+          <div className="flex-1 text-center md:text-left">
+            <span className="inline-block px-3 py-1 bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest mb-4">Album</span>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight">{album.name}</h1>
+            <div className="flex items-center justify-center md:justify-start gap-4 mb-8">
+               <div className="w-10 h-10 overflow-hidden border border-white/20 shadow-lg">
+                  <Image src="/lizhi-avatar.png" alt="Artist Avatar" width={40} height={40} unoptimized className="object-cover" />
+               </div>
+               <span className="font-bold text-lg text-white">李志</span>
+               <span className="text-white/20">•</span>
+               <span className="text-white/40">{album.year ? `${album.year} • ` : ''}{album.songs.length} 首歌曲</span>
+            </div>
+            
+            <div className="flex items-center justify-center md:justify-start gap-4">
+               <button className="px-10 py-4 bg-[#ff2d55] text-white font-bold hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-[0_10px_30px_rgba(255,45,85,0.4)]">
+                  <Play className="w-5 h-5 fill-current" /> 播放全部
+               </button>
+               <button className="p-4 bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white/60 hover:text-white">
+                  <Shuffle className="w-5 h-5" />
+               </button>
+               <button className="p-4 bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white/60 hover:text-white">
+                  <Heart className="w-5 h-5" />
+               </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Song List */}
-      <div className="px-6 max-w-5xl mx-auto">
-        <div className="grid grid-cols-[40px_1fr_100px] px-4 py-4 text-xs font-bold uppercase tracking-widest text-white/40 border-b border-white/5 mb-2">
-          <span>#</span>
-          <span>标题</span>
-          <span className="text-right pr-4">时长</span>
-        </div>
-        
-        <div className="space-y-1">
-          {album.songs.map((song, index) => (
-            <Link
-              key={song.id}
-              href={`/player/${encodeURIComponent(album.name)}/${encodeURIComponent(song.title)}`}
-              data-testid="album-song-link"
-              className="group grid grid-cols-[40px_1fr_100px] items-center gap-4 py-4 px-4 rounded-2xl hover:bg-white/5 transition-all"
-            >
-              <span className="w-8 text-sm font-bold text-white/30 group-hover:text-[#ff2d55] transition-colors">
-                {index + 1}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold truncate group-hover:text-white transition-colors">{song.title}</div>
-                <div className="text-xs text-white/40">李志</div>
-              </div>
-              <div className="flex items-center justify-end gap-4 text-white/40 text-sm">
-                {song.lyricPath && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded border border-white/10 font-bold opacity-40 group-hover:opacity-100 transition-opacity">LRC</span>
-                )}
-                <Play className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0" />
-              </div>
-            </Link>
-          ))}
+        {/* Song List */}
+        <div className="px-6 pb-20">
+          <div className="max-w-5xl">
+            <div className="grid grid-cols-[40px_1fr_100px] px-4 py-4 text-xs font-bold uppercase tracking-widest text-white/20 border-b border-white/5 mb-4">
+              <span>#</span>
+              <span>标题</span>
+              <span className="text-right pr-4">信息</span>
+            </div>
+            
+            <div className="space-y-1">
+              {album.songs.map((song, index) => (
+                <Link
+                  key={song.id}
+                  href={`/player/${encodeURIComponent(album.name)}/${encodeURIComponent(song.title)}`}
+                  data-testid="album-song-link"
+                  className="group grid grid-cols-[40px_1fr_100px] items-center gap-4 py-4 px-4 hover:bg-white/5 transition-all"
+                >
+                  <span className="w-8 text-sm font-bold text-white/20 group-hover:text-[#ff2d55] transition-colors">
+                    {index + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold truncate group-hover:text-white transition-colors text-white/90">{song.title}</div>
+                    <div className="text-xs text-white/30 uppercase tracking-tighter">李志</div>
+                  </div>
+                  <div className="flex items-center justify-end gap-4 text-white/20 text-sm">
+                    {song.lyricPath && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded border border-white/10 font-bold opacity-30 group-hover:opacity-100 transition-opacity tracking-widest">LRC</span>
+                    )}
+                    <Play className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 text-[#ff2d55]" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

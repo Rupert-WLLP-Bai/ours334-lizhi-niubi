@@ -44,6 +44,15 @@ function extractSongTitle(fileName: string): string {
   return stripKnownExtension(fileName).replace(/^李志 - /, '');
 }
 
+function normalizeSongOrderKey(value: string): string {
+  return stripKnownExtension(value)
+    .replace(/^李志\s*-\s*/i, '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[，,。．.!！?？、；;：:“”"'‘’`~\-—_（）()\[\]【】《》<>]/g, '')
+    .replace(/\s+/g, '');
+}
+
 function generateSongId(albumName: string, songTitle: string): string {
   return `${albumName}-${songTitle}`.toLowerCase().replace(/\s+/g, '-');
 }
@@ -117,22 +126,26 @@ export async function GET() {
 
       // 2. 根据 metadata.order 进行排序
       if (metadata.order && Array.isArray(metadata.order)) {
-        // 预处理 order 列表：去空格、转小写
-        const normalizedOrder = metadata.order.map(s => s.trim().toLowerCase());
-        
+        const orderIndex = new Map<string, number>();
+        for (let i = 0; i < metadata.order.length; i += 1) {
+          const key = normalizeSongOrderKey(metadata.order[i]);
+          if (!orderIndex.has(key)) {
+            orderIndex.set(key, i);
+          }
+        }
+
         album.songs.sort((a, b) => {
-          const titleA = a.title.trim().toLowerCase();
-          const titleB = b.title.trim().toLowerCase();
-          
-          const indexA = normalizedOrder.indexOf(titleA);
-          const indexB = normalizedOrder.indexOf(titleB);
-          
+          const keyA = normalizeSongOrderKey(a.title);
+          const keyB = normalizeSongOrderKey(b.title);
+          const indexA = orderIndex.has(keyA) ? (orderIndex.get(keyA) as number) : Number.MAX_SAFE_INTEGER;
+          const indexB = orderIndex.has(keyB) ? (orderIndex.get(keyB) as number) : Number.MAX_SAFE_INTEGER;
+
           // 如果都在 order 列表里，按列表顺序排
-          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+          if (indexA !== Number.MAX_SAFE_INTEGER && indexB !== Number.MAX_SAFE_INTEGER) return indexA - indexB;
           // 如果只有 A 在，A 在前
-          if (indexA !== -1) return -1;
+          if (indexA !== Number.MAX_SAFE_INTEGER) return -1;
           // 如果只有 B 在，B 在前
-          if (indexB !== -1) return 1;
+          if (indexB !== Number.MAX_SAFE_INTEGER) return 1;
           // 都不在，按字母序
           return a.title.localeCompare(b.title);
         });
