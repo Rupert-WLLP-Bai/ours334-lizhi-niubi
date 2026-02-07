@@ -1,8 +1,12 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import { ALBUMS_DIR } from '@/lib/albums';
+import { ALBUMS_DIR } from "@/lib/albums";
+import {
+  loadAlbumCatalogIndex,
+  scanAlbumsDirectory,
+  type CatalogAlbum,
+} from "@/lib/albumCatalog";
+import { isCloudAssetSource } from "@/lib/assetSource";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export interface Song {
@@ -22,157 +26,56 @@ export interface Album {
   songs: Song[];
 }
 
-function stripKnownExtension(fileName: string): string {
-  return fileName.replace(/\.(flac|m4a|lrc)$/i, '');
+function getAudioUrl(albumName: string, songBaseName: string): string {
+  return `/api/audio?album=${encodeURIComponent(albumName)}&song=${encodeURIComponent(songBaseName)}`;
 }
 
-function getAudioUrl(albumName: string, fileName: string): string {
-  const baseName = stripKnownExtension(fileName);
-  return `/api/audio?album=${encodeURIComponent(albumName)}&song=${encodeURIComponent(baseName)}`;
-}
-
-function getLyricUrl(albumName: string, fileName: string): string {
-  const baseName = stripKnownExtension(fileName);
-  return `/api/lyrics?album=${encodeURIComponent(albumName)}&song=${encodeURIComponent(baseName)}`;
+function getLyricUrl(albumName: string, songBaseName: string): string {
+  return `/api/lyrics?album=${encodeURIComponent(albumName)}&song=${encodeURIComponent(songBaseName)}`;
 }
 
 function getCoverUrl(albumName: string): string {
   return `/api/covers?album=${encodeURIComponent(albumName)}`;
 }
 
-function extractSongTitle(fileName: string): string {
-  return stripKnownExtension(fileName).replace(/^李志 - /, '');
-}
-
-function normalizeSongOrderKey(value: string): string {
-  return stripKnownExtension(value)
-    .replace(/^李志\s*-\s*/i, '')
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[，,。．.!！?？、；;：:“”"'‘’`~\-—_（）()\[\]【】《》<>]/g, '')
-    .replace(/\s+/g, '');
-}
-
-function generateSongId(albumName: string, songTitle: string): string {
-  return `${albumName}-${songTitle}`.toLowerCase().replace(/\s+/g, '-');
+async function loadCatalogAlbums(): Promise<CatalogAlbum[]> {
+  if (isCloudAssetSource()) {
+    const index = await loadAlbumCatalogIndex();
+    return index.albums;
+  }
+  return scanAlbumsDirectory(ALBUMS_DIR);
 }
 
 export async function GET() {
   try {
-    const albums: Album[] = [];
-    const allSongs: Song[] = [];
-
-    const entries = await fs.readdir(ALBUMS_DIR, { withFileTypes: true });
-
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-
-      const albumName = entry.name;
-      const albumDir = path.join(ALBUMS_DIR, albumName);
-
-      // 1. 尝试读取 info.json (包含年份和顺序)
-      let metadata: { year?: string; order?: string[] } = {};
-      try {
-        const infoContent = await fs.readFile(path.join(albumDir, 'info.json'), 'utf-8');
-        metadata = JSON.parse(infoContent);
-      } catch {
-        metadata = {};
-      }
-
-      // Check for cover.jpg
-      let coverPath = '';
-      try {
-        await fs.access(path.join(albumDir, 'cover.jpg'));
-        coverPath = getCoverUrl(albumName);
-      } catch {
-        coverPath = '';
-      }
-
-      const album: Album = {
-        id: albumName.toLowerCase().replace(/\s+/g, '-'),
-        name: albumName,
-        year: metadata.year || '',
+    const catalogAlbums = await loadCatalogAlbums();
+    const albums: Album[] = catalogAlbums.map(catalogAlbum => {
+      const coverPath = catalogAlbum.hasCover ? getCoverUrl(catalogAlbum.name) : "";
+      return {
+        id: catalogAlbum.id,
+        name: catalogAlbum.name,
+        year: catalogAlbum.year || "",
         coverPath,
-        songs: [],
+        songs: catalogAlbum.songs.map(song => ({
+          id: song.id,
+          title: song.title,
+          album: song.album,
+          audioPath: getAudioUrl(catalogAlbum.name, song.audioBaseName),
+          lyricPath: song.hasLyric ? getLyricUrl(catalogAlbum.name, song.audioBaseName) : null,
+          coverPath,
+        })),
       };
-
-      const files = await fs.readdir(albumDir);
-
-      for (const file of files) {
-        const lowerFile = file.toLowerCase();
-        if (lowerFile.endsWith('.flac') || lowerFile.endsWith('.m4a')) {
-          const filePath = path.join(albumDir, file);
-          const stat = await fs.stat(filePath);
-          if (!stat.isFile()) continue;
-
-          const baseName = stripKnownExtension(file);
-          const songTitle = extractSongTitle(file);
-          const songId = generateSongId(albumName, songTitle);
-          const hasLyric = files.includes(`${baseName}.lrc`);
-
-          const song: Song = {
-            id: songId,
-            title: songTitle,
-            album: albumName,
-            audioPath: getAudioUrl(albumName, file),
-            lyricPath: hasLyric ? getLyricUrl(albumName, file) : null,
-            coverPath,
-          };
-
-          album.songs.push(song);
-          allSongs.push(song);
-        }
-      }
-
-      // 2. 根据 metadata.order 进行排序
-      if (metadata.order && Array.isArray(metadata.order)) {
-        const orderIndex = new Map<string, number>();
-        for (let i = 0; i < metadata.order.length; i += 1) {
-          const key = normalizeSongOrderKey(metadata.order[i]);
-          if (!orderIndex.has(key)) {
-            orderIndex.set(key, i);
-          }
-        }
-
-        album.songs.sort((a, b) => {
-          const keyA = normalizeSongOrderKey(a.title);
-          const keyB = normalizeSongOrderKey(b.title);
-          const indexA = orderIndex.has(keyA) ? (orderIndex.get(keyA) as number) : Number.MAX_SAFE_INTEGER;
-          const indexB = orderIndex.has(keyB) ? (orderIndex.get(keyB) as number) : Number.MAX_SAFE_INTEGER;
-
-          // 如果都在 order 列表里，按列表顺序排
-          if (indexA !== Number.MAX_SAFE_INTEGER && indexB !== Number.MAX_SAFE_INTEGER) return indexA - indexB;
-          // 如果只有 A 在，A 在前
-          if (indexA !== Number.MAX_SAFE_INTEGER) return -1;
-          // 如果只有 B 在，B 在前
-          if (indexB !== Number.MAX_SAFE_INTEGER) return 1;
-          // 都不在，按字母序
-          return a.title.localeCompare(b.title);
-        });
-      } else {
-        // 默认按字母序
-        album.songs.sort((a, b) => a.title.localeCompare(b.title));
-      }
-
-      albums.push(album);
-    }
-
-    // 按年份降序排序专辑，如果年份相同按名称
-    albums.sort((a, b) => {
-      if (a.year && b.year && a.year !== b.year) {
-        return b.year.localeCompare(a.year);
-      }
-      return a.name.localeCompare(b.name);
     });
+    const allSongs = albums.flatMap(album => album.songs);
 
     return Response.json({
       albums,
       songs: allSongs,
     });
   } catch (error) {
-    console.error('Error scanning songs directory:', error);
+    console.error("Error loading songs catalog:", error);
     return Response.json(
-      { error: 'Failed to scan songs directory' },
+      { error: "Failed to load songs catalog" },
       { status: 500 }
     );
   }

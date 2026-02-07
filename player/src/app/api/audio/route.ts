@@ -1,18 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createReadStream } from 'fs';
-import { stat } from 'fs/promises';
-import { resolveAlbumFilePath } from '@/lib/albums';
+import { NextRequest, NextResponse } from "next/server";
+import { createReadStream } from "fs";
+import { stat } from "fs/promises";
+import { resolveAlbumFilePath } from "@/lib/albums";
+import { findSongInCatalog, loadAlbumCatalogIndex } from "@/lib/albumCatalog";
+import { buildCloudAssetUrl, isCloudAssetSource } from "@/lib/assetSource";
 
-const SUPPORTED_AUDIO_EXTENSIONS = ['.flac', '.m4a'] as const;
+const SUPPORTED_AUDIO_EXTENSIONS = [".flac", ".m4a"] as const;
 
 type ResolvedAudioFile =
   | { audioPath: string; fileSize: number; contentType: string }
   | null
-  | 'invalid';
+  | "invalid";
 
 function getAudioContentType(extension: (typeof SUPPORTED_AUDIO_EXTENSIONS)[number]): string {
-  if (extension === '.m4a') return 'audio/mp4';
-  return 'audio/flac';
+  if (extension === ".m4a") return "audio/mp4";
+  return "audio/flac";
 }
 
 async function resolveAudioFile(album: string, song: string): Promise<ResolvedAudioFile> {
@@ -27,7 +29,7 @@ async function resolveAudioFile(album: string, song: string): Promise<ResolvedAu
   );
 
   if (validCandidates.length !== candidates.length) {
-    return 'invalid';
+    return "invalid";
   }
 
   for (const candidate of validCandidates) {
@@ -48,6 +50,17 @@ async function resolveAudioFile(album: string, song: string): Promise<ResolvedAu
   return null;
 }
 
+async function resolveCloudAudioRedirect(album: string, song: string): Promise<string | null> {
+  const index = await loadAlbumCatalogIndex();
+  const songRecord = findSongInCatalog(index, album, song);
+  if (!songRecord) return null;
+  const url = buildCloudAssetUrl(album, songRecord.audioFileName);
+  if (!url) {
+    throw new Error("ASSET_BASE_URL is missing for cloud audio mode");
+  }
+  return url;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const album = searchParams.get('album');
@@ -57,8 +70,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing album or song' }, { status: 400 });
   }
 
+  if (isCloudAssetSource()) {
+    try {
+      const redirectUrl = await resolveCloudAudioRedirect(album, song);
+      if (!redirectUrl) {
+        return NextResponse.json({ error: "Audio not found" }, { status: 404 });
+      }
+      return NextResponse.redirect(redirectUrl, 307);
+    } catch (error) {
+      console.error("Cloud audio redirect error:", error);
+      return NextResponse.json({ error: "Cloud audio unavailable" }, { status: 500 });
+    }
+  }
+
   const resolvedAudio = await resolveAudioFile(album, song);
-  if (resolvedAudio === 'invalid') {
+  if (resolvedAudio === "invalid") {
     return NextResponse.json({ error: 'Invalid album or song' }, { status: 400 });
   }
   if (!resolvedAudio) {

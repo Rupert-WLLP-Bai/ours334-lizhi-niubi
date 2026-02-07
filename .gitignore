@@ -14,3 +14,6 @@ playwright-report/
 test-results/
 tsconfig.tsbuildinfo 
 player/data/
+
+/R2_USAGE.md
+.key

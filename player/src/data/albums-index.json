@@ -1,0 +1,919 @@
+{
+  "generatedAt": "2026-02-07T14:54:38.914Z",
+  "albumCount": 10,
+  "songCount": 104,
+  "albums": [
+    {
+      "id": "在每一条伤心的应天大街上",
+      "name": "在每一条伤心的应天大街上",
+      "year": "2016-11-20",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "在每一条伤心的应天大街上-一个夜晚",
+          "title": "一个夜晚",
+          "album": "在每一条伤心的应天大街上",
+          "audioBaseName": "李志 - 一个夜晚",
+          "audioFileName": "李志 - 一个夜晚.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "在每一条伤心的应天大街上-一头偶像",
+          "title": "一头偶像",
+          "album": "在每一条伤心的应天大街上",
+          "audioBaseName": "李志 - 一头偶像",
+          "audioFileName": "李志 - 一头偶像.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "在每一条伤心的应天大街上-你好明天",
+          "title": "你好明天",
+          "album": "在每一条伤心的应天大街上",
+          "audioBaseName": "李志 - 你好明天",
+          "audioFileName": "李志 - 你好明天.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "在每一条伤心的应天大街上-克兰河",
+          "title": "克兰河",
+          "album": "在每一条伤心的应天大街上",
+          "audioBaseName": "李志 - 克兰河",
+          "audioFileName": "李志 - 克兰河.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "在每一条伤心的应天大街上-死人",
+          "title": "死人",
+          "album": "在每一条伤心的应天大街上",
+          "audioBaseName": "李志 - 死人",
+          "audioFileName": "李志 - 死人.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "在每一条伤心的应天大街上-哦吼",
+          "title": "哦吼",
+          "album": "在每一条伤心的应天大街上",
+          "audioBaseName": "李志 - 哦吼",
+          "audioFileName": "李志 - 哦吼.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "在每一条伤心的应天大街上-在每一条伤心的应天大街上",
+          "title": "在每一条伤心的应天大街上",
+          "album": "在每一条伤心的应天大街上",
+          "audioBaseName": "李志 - 在每一条伤心的应天大街上",
+          "audioFileName": "李志 - 在每一条伤心的应天大街上.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "在每一条伤心的应天大街上-彩色派对",
+          "title": "彩色派对",
+          "album": "在每一条伤心的应天大街上",
+          "audioBaseName": "李志 - 彩色派对",
+          "audioFileName": "李志 - 彩色派对.flac",
+          "hasLyric": true
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "name": "8",
+      "year": "2016-10-18",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "8-hey-jude",
+          "title": "Hey Jude",
+          "album": "8",
+          "audioBaseName": "李志 - Hey Jude",
+          "audioFileName": "李志 - Hey Jude.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "8-兰花草",
+          "title": "兰花草",
+          "album": "8",
+          "audioBaseName": "李志 - 兰花草",
+          "audioFileName": "李志 - 兰花草.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "8-小螺号",
+          "title": "小螺号",
+          "album": "8",
+          "audioBaseName": "李志 - 小螺号",
+          "audioFileName": "李志 - 小螺号.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "8-数鸭子",
+          "title": "数鸭子",
+          "album": "8",
+          "audioBaseName": "李志 - 数鸭子",
+          "audioFileName": "李志 - 数鸭子.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "8-朋友越多越快乐",
+          "title": "朋友越多越快乐",
+          "album": "8",
+          "audioBaseName": "李志 - 朋友越多越快乐",
+          "audioFileName": "李志 - 朋友越多越快乐.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "8-歌声与微笑",
+          "title": "歌声与微笑",
+          "album": "8",
+          "audioBaseName": "李志 - 歌声与微笑",
+          "audioFileName": "李志 - 歌声与微笑.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "8-蜗牛与黄鹂鸟",
+          "title": "蜗牛与黄鹂鸟",
+          "album": "8",
+          "audioBaseName": "李志 - 蜗牛与黄鹂鸟",
+          "audioFileName": "李志 - 蜗牛与黄鹂鸟.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "8-送别",
+          "title": "送别",
+          "album": "8",
+          "audioBaseName": "李志 - 送别",
+          "audioFileName": "李志 - 送别.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "8-采蘑菇的小姑娘",
+          "title": "采蘑菇的小姑娘",
+          "album": "8",
+          "audioBaseName": "李志 - 采蘑菇的小姑娘",
+          "audioFileName": "李志 - 采蘑菇的小姑娘.flac",
+          "hasLyric": true
+        }
+      ]
+    },
+    {
+      "id": "1701",
+      "name": "1701",
+      "year": "2014-05-22",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "1701-不多",
+          "title": "不多",
+          "album": "1701",
+          "audioBaseName": "李志 - 不多",
+          "audioFileName": "李志 - 不多.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "1701-大象",
+          "title": "大象",
+          "album": "1701",
+          "audioBaseName": "李志 - 大象",
+          "audioFileName": "李志 - 大象.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "1701-好威武支持有希望",
+          "title": "好威武支持有希望",
+          "album": "1701",
+          "audioBaseName": "李志 - 好威武支持有希望",
+          "audioFileName": "李志 - 好威武支持有希望.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "1701-定西",
+          "title": "定西",
+          "album": "1701",
+          "audioBaseName": "李志 - 定西",
+          "audioFileName": "李志 - 定西.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "1701-方式",
+          "title": "方式",
+          "album": "1701",
+          "audioBaseName": "李志 - 方式",
+          "audioFileName": "李志 - 方式.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "1701-热河",
+          "title": "热河",
+          "album": "1701",
+          "audioBaseName": "李志 - 热河",
+          "audioFileName": "李志 - 热河.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "1701-看见",
+          "title": "看见",
+          "album": "1701",
+          "audioBaseName": "李志 - 看见",
+          "audioFileName": "李志 - 看见.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "1701-鼠说",
+          "title": "鼠说",
+          "album": "1701",
+          "audioBaseName": "李志 - 鼠说",
+          "audioFileName": "李志 - 鼠说.flac",
+          "hasLyric": true
+        }
+      ]
+    },
+    {
+      "id": "f",
+      "name": "F",
+      "year": "2011-09-28",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "f-寻找",
+          "title": "寻找",
+          "album": "F",
+          "audioBaseName": "李志 - 寻找",
+          "audioFileName": "李志 - 寻找.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "f-尽头",
+          "title": "尽头",
+          "album": "F",
+          "audioBaseName": "李志 - 尽头",
+          "audioFileName": "李志 - 尽头.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "f-门",
+          "title": "门",
+          "album": "F",
+          "audioBaseName": "李志 - 门",
+          "audioFileName": "李志 - 门.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "f-下雨",
+          "title": "下雨",
+          "album": "F",
+          "audioBaseName": "李志 - 下雨",
+          "audioFileName": "李志 - 下雨.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "f-山阴路的夏天",
+          "title": "山阴路的夏天",
+          "album": "F",
+          "audioBaseName": "李志 - 山阴路的夏天",
+          "audioFileName": "李志 - 山阴路的夏天.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "f-女神",
+          "title": "女神",
+          "album": "F",
+          "audioBaseName": "李志 - 女神",
+          "audioFileName": "李志 - 女神.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "f-你的早晨",
+          "title": "你的早晨",
+          "album": "F",
+          "audioBaseName": "李志 - 你的早晨",
+          "audioFileName": "李志 - 你的早晨.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "f-杭州",
+          "title": "杭州",
+          "album": "F",
+          "audioBaseName": "李志 - 杭州",
+          "audioFileName": "李志 - 杭州.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "f-日",
+          "title": "日",
+          "album": "F",
+          "audioBaseName": "李志 - 日",
+          "audioFileName": "李志 - 日.flac",
+          "hasLyric": true
+        }
+      ]
+    },
+    {
+      "id": "你好，郑州",
+      "name": "你好，郑州",
+      "year": "2010-09-01",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "你好，郑州-墙上的向日葵",
+          "title": "墙上的向日葵",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 墙上的向日葵",
+          "audioFileName": "李志 - 墙上的向日葵.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "你好，郑州-铅笔",
+          "title": "铅笔",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 铅笔",
+          "audioFileName": "李志 - 铅笔.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "你好，郑州-关于郑州的记忆",
+          "title": "关于郑州的记忆",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 关于郑州的记忆",
+          "audioFileName": "李志 - 关于郑州的记忆.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "你好，郑州-忽然",
+          "title": "忽然",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 忽然",
+          "audioFileName": "李志 - 忽然.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "你好，郑州-秋天的老狼",
+          "title": "秋天的老狼",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 秋天的老狼",
+          "audioFileName": "李志 - 秋天的老狼.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "你好，郑州-带亲",
+          "title": "带亲",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 带亲",
+          "audioFileName": "李志 - 带亲.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "你好，郑州-她",
+          "title": "她",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 她",
+          "audioFileName": "李志 - 她.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "你好，郑州-路（李志、邵夷贝）",
+          "title": "路（李志、邵夷贝）",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 路（李志、邵夷贝）",
+          "audioFileName": "李志 - 路（李志、邵夷贝）.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "你好，郑州-夜",
+          "title": "夜",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 夜",
+          "audioFileName": "李志 - 夜.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "你好，郑州-铅笔(吉松浩版)",
+          "title": "铅笔(吉松浩版)",
+          "album": "你好，郑州",
+          "audioBaseName": "李志 - 铅笔(吉松浩版)",
+          "audioFileName": "李志 - 铅笔(吉松浩版).flac",
+          "hasLyric": true
+        }
+      ]
+    },
+    {
+      "id": "我爱南京",
+      "name": "我爱南京",
+      "year": "2009-10-16",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "我爱南京-意味",
+          "title": "意味",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 意味",
+          "audioFileName": "李志 - 意味.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-苍井空",
+          "title": "苍井空",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 苍井空",
+          "audioFileName": "李志 - 苍井空.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-结婚（老狼-万晓利-李志）",
+          "title": "结婚（老狼 万晓利 李志）",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 结婚（老狼 万晓利 李志）",
+          "audioFileName": "李志 - 结婚（老狼 万晓利 李志）.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-鸵鸟",
+          "title": "鸵鸟",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 鸵鸟",
+          "audioFileName": "李志 - 鸵鸟.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-天空之城",
+          "title": "天空之城",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 天空之城",
+          "audioFileName": "李志 - 天空之城.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-倒影",
+          "title": "倒影",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 倒影",
+          "audioFileName": "李志 - 倒影.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-爱",
+          "title": "爱",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 爱",
+          "audioFileName": "李志 - 爱.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-家乡",
+          "title": "家乡",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 家乡",
+          "audioFileName": "李志 - 家乡.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-1990年的春天",
+          "title": "1990年的春天",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 1990年的春天",
+          "audioFileName": "李志 - 1990年的春天.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-冬妮娅-献给成都",
+          "title": "冬妮娅-献给成都",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 冬妮娅-献给成都",
+          "audioFileName": "李志 - 冬妮娅-献给成都.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-听妈妈讲那过去的事情（汤臣-蔡文昊-李志）",
+          "title": "听妈妈讲那过去的事情（汤臣 蔡文昊 李志）",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 听妈妈讲那过去的事情（汤臣 蔡文昊 李志）",
+          "audioFileName": "李志 - 听妈妈讲那过去的事情（汤臣 蔡文昊 李志）.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-美丽的梭罗河",
+          "title": "美丽的梭罗河",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 美丽的梭罗河",
+          "audioFileName": "李志 - 美丽的梭罗河.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-米店",
+          "title": "米店",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 米店",
+          "audioFileName": "李志 - 米店.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-思念观世音",
+          "title": "思念观世音",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 思念观世音",
+          "audioFileName": "李志 - 思念观世音.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-在那遥远的地方",
+          "title": "在那遥远的地方",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 在那遥远的地方",
+          "audioFileName": "李志 - 在那遥远的地方.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "我爱南京-再见(乐曲)",
+          "title": "再见(乐曲)",
+          "album": "我爱南京",
+          "audioBaseName": "李志 - 再见(乐曲)",
+          "audioFileName": "李志 - 再见(乐曲).flac",
+          "hasLyric": false
+        }
+      ]
+    },
+    {
+      "id": "工体东路没有人",
+      "name": "工体东路没有人",
+      "year": "2009-01-22",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "工体东路没有人-forbidden-game-(被禁忌的游戏)-[live]",
+          "title": "Forbidden Game (被禁忌的游戏) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Forbidden Game (被禁忌的游戏) [Live]",
+          "audioFileName": "Forbidden Game (被禁忌的游戏) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-be-with-you-(和你在一起)-[live]",
+          "title": "Be With You (和你在一起) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Be With You (和你在一起) [Live]",
+          "audioFileName": "Be With You (和你在一起) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-it-has-come-(来了)-[live]",
+          "title": "It Has Come (来了) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "It Has Come (来了) [Live]",
+          "audioFileName": "It Has Come (来了) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-kafka-(卡夫卡)-[live]",
+          "title": "Kafka (卡夫卡) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Kafka (卡夫卡) [Live]",
+          "audioFileName": "Kafka (卡夫卡) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-black-envelop-(黑色信封)-[live]",
+          "title": "Black Envelop (黑色信封) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Black Envelop (黑色信封) [Live]",
+          "audioFileName": "Black Envelop (黑色信封) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-alan-(阿兰)-[live]",
+          "title": "Alan (阿兰) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Alan (阿兰) [Live]",
+          "audioFileName": "Alan (阿兰) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-a-southern-city-in-a-late-spring-day-(春末的南方城市)-[live]",
+          "title": "A Southern City In A Late Spring Day (春末的南方城市) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "A Southern City In A Late Spring Day (春末的南方城市) [Live]",
+          "audioFileName": "A Southern City In A Late Spring Day (春末的南方城市) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-they-(他们)-[live]",
+          "title": "They (他们) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "They (他们) [Live]",
+          "audioFileName": "They (他们) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-a-vague-talk-(暧昧)-[live]",
+          "title": "A Vague Talk (暧昧) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "A Vague Talk (暧昧) [Live]",
+          "audioFileName": "A Vague Talk (暧昧) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-marriage-(结婚)-[live]",
+          "title": "Marriage (结婚) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Marriage (结婚) [Live]",
+          "audioFileName": "Marriage (结婚) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-has-man-a-future-(这个世界会好吗)-[live]",
+          "title": "Has Man A Future (这个世界会好吗) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Has Man A Future (这个世界会好吗) [Live]",
+          "audioFileName": "Has Man A Future (这个世界会好吗) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-red-balloon-(红色气球)-[live]",
+          "title": "Red Balloon (红色气球) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Red Balloon (红色气球) [Live]",
+          "audioFileName": "Red Balloon (红色气球) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-moon-says-my-heart-(月亮代表我的心)-[live]",
+          "title": "Moon Says My Heart (月亮代表我的心) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Moon Says My Heart (月亮代表我的心) [Live]",
+          "audioFileName": "Moon Says My Heart (月亮代表我的心) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-miss-dong-(董卓瑶)-[live]",
+          "title": "Miss Dong (董卓瑶) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Miss Dong (董卓瑶) [Live]",
+          "audioFileName": "Miss Dong (董卓瑶) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-once-upon-a-time-(青春)-[live]",
+          "title": "Once Upon A Time (青春) [Live]",
+          "album": "工体东路没有人",
+          "audioBaseName": "Once Upon A Time (青春) [Live]",
+          "audioFileName": "Once Upon A Time (青春) [Live].m4a",
+          "hasLyric": false
+        },
+        {
+          "id": "工体东路没有人-when-i-miss-her-(想起了她)-[live-bonus-track]",
+          "title": "When I Miss Her (想起了她) [Live Bonus Track]",
+          "album": "工体东路没有人",
+          "audioBaseName": "When I Miss Her (想起了她) [Live Bonus Track]",
+          "audioFileName": "When I Miss Her (想起了她) [Live Bonus Track].m4a",
+          "hasLyric": false
+        }
+      ]
+    },
+    {
+      "id": "这个世界会好吗",
+      "name": "这个世界会好吗",
+      "year": "2006-11-20",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "这个世界会好吗-妈妈",
+          "title": "妈妈",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 妈妈",
+          "audioFileName": "李志 - 妈妈.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "这个世界会好吗-喀纳斯",
+          "title": "喀纳斯",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 喀纳斯",
+          "audioFileName": "李志 - 喀纳斯.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "这个世界会好吗-和你在一起",
+          "title": "和你在一起",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 和你在一起",
+          "audioFileName": "李志 - 和你在一起.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "这个世界会好吗-我们不能失去信仰—献给刘艺",
+          "title": "我们不能失去信仰—献给刘艺",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 我们不能失去信仰—献给刘艺",
+          "audioFileName": "李志 - 我们不能失去信仰—献给刘艺.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "这个世界会好吗-翁庆年的六英镑",
+          "title": "翁庆年的六英镑",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 翁庆年的六英镑",
+          "audioFileName": "李志 - 翁庆年的六英镑.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "这个世界会好吗-他们",
+          "title": "他们",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 他们",
+          "audioFileName": "李志 - 他们.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "这个世界会好吗-海的女儿",
+          "title": "海的女儿",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 海的女儿",
+          "audioFileName": "李志 - 海的女儿.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "这个世界会好吗-交河(乐曲)",
+          "title": "交河(乐曲)",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 交河(乐曲)",
+          "audioFileName": "李志 - 交河(乐曲).flac",
+          "hasLyric": false
+        },
+        {
+          "id": "这个世界会好吗-这个世界会好吗",
+          "title": "这个世界会好吗",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 这个世界会好吗",
+          "audioFileName": "李志 - 这个世界会好吗.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "这个世界会好吗-人民不需要自由",
+          "title": "人民不需要自由",
+          "album": "这个世界会好吗",
+          "audioBaseName": "李志 - 人民不需要自由",
+          "audioFileName": "李志 - 人民不需要自由.flac",
+          "hasLyric": true
+        }
+      ]
+    },
+    {
+      "id": "梵高先生",
+      "name": "梵高先生",
+      "year": "2005-12-25",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "梵高先生-你离开了南京，从此没有人和我说话",
+          "title": "你离开了南京，从此没有人和我说话",
+          "album": "梵高先生",
+          "audioBaseName": "李志 - 你离开了南京，从此没有人和我说话",
+          "audioFileName": "李志 - 你离开了南京，从此没有人和我说话.flac",
+          "hasLyric": false
+        },
+        {
+          "id": "梵高先生-董卓瑶",
+          "title": "董卓瑶",
+          "album": "梵高先生",
+          "audioBaseName": "李志 - 董卓瑶",
+          "audioFileName": "李志 - 董卓瑶.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "梵高先生-春末的南方城市",
+          "title": "春末的南方城市",
+          "album": "梵高先生",
+          "audioBaseName": "李志 - 春末的南方城市",
+          "audioFileName": "李志 - 春末的南方城市.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "梵高先生-来了",
+          "title": "来了",
+          "album": "梵高先生",
+          "audioBaseName": "李志 - 来了",
+          "audioFileName": "李志 - 来了.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "梵高先生-广场",
+          "title": "广场",
+          "album": "梵高先生",
+          "audioBaseName": "李志 - 广场",
+          "audioFileName": "李志 - 广场.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "梵高先生-暧昧",
+          "title": "暧昧",
+          "album": "梵高先生",
+          "audioBaseName": "李志 - 暧昧",
+          "audioFileName": "李志 - 暧昧.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "梵高先生-想起了她",
+          "title": "想起了她",
+          "album": "梵高先生",
+          "audioBaseName": "李志 - 想起了她",
+          "audioFileName": "李志 - 想起了她.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "梵高先生-梵高先生",
+          "title": "梵高先生",
+          "album": "梵高先生",
+          "audioBaseName": "李志 - 梵高先生",
+          "audioFileName": "李志 - 梵高先生.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "梵高先生-斜",
+          "title": "斜",
+          "album": "梵高先生",
+          "audioBaseName": "李志 - 斜",
+          "audioFileName": "李志 - 斜.flac",
+          "hasLyric": true
+        }
+      ]
+    },
+    {
+      "id": "被禁忌的游戏",
+      "name": "被禁忌的游戏",
+      "year": "2004-12-01",
+      "hasCover": true,
+      "songs": [
+        {
+          "id": "被禁忌的游戏-黑色信封",
+          "title": "黑色信封",
+          "album": "被禁忌的游戏",
+          "audioBaseName": "李志 - 黑色信封",
+          "audioFileName": "李志 - 黑色信封.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "被禁忌的游戏-青春",
+          "title": "青春",
+          "album": "被禁忌的游戏",
+          "audioBaseName": "李志 - 青春",
+          "audioFileName": "李志 - 青春.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "被禁忌的游戏-阿兰",
+          "title": "阿兰",
+          "album": "被禁忌的游戏",
+          "audioBaseName": "李志 - 阿兰",
+          "audioFileName": "李志 - 阿兰.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "被禁忌的游戏-离婚",
+          "title": "离婚",
+          "album": "被禁忌的游戏",
+          "audioBaseName": "李志 - 离婚",
+          "audioFileName": "李志 - 离婚.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "被禁忌的游戏-欢愉",
+          "title": "欢愉",
+          "album": "被禁忌的游戏",
+          "audioBaseName": "李志 - 欢愉",
+          "audioFileName": "李志 - 欢愉.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "被禁忌的游戏-卡夫卡",
+          "title": "卡夫卡",
+          "album": "被禁忌的游戏",
+          "audioBaseName": "李志 - 卡夫卡",
+          "audioFileName": "李志 - 卡夫卡.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "被禁忌的游戏-被禁忌的游戏",
+          "title": "被禁忌的游戏",
+          "album": "被禁忌的游戏",
+          "audioBaseName": "李志 - 被禁忌的游戏",
+          "audioFileName": "李志 - 被禁忌的游戏.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "被禁忌的游戏-罗庄的冬天",
+          "title": "罗庄的冬天",
+          "album": "被禁忌的游戏",
+          "audioBaseName": "李志 - 罗庄的冬天",
+          "audioFileName": "李志 - 罗庄的冬天.flac",
+          "hasLyric": true
+        },
+        {
+          "id": "被禁忌的游戏-红色气球",
+          "title": "红色气球",
+          "album": "被禁忌的游戏",
+          "audioBaseName": "李志 - 红色气球",
+          "audioFileName": "李志 - 红色气球.flac",
+          "hasLyric": true
+        }
+      ]
+    }
+  ]
+}

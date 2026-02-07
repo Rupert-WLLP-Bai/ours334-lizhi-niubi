@@ -360,7 +360,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
           </button>
           <div className="flex flex-col items-center">
             <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-1 font-bold">正在播放</span>
-            <span className="text-sm font-medium truncate max-w-[200px]">{currentAlbum?.name || "..."}</span>
+            <span className="text-sm font-medium truncate max-w-[200px]">{currentSong?.title || "..."}</span>
           </div>
           <button className="p-2 hover:bg-white/10 transition-colors">
             <MoreHorizontal className="w-6 h-6" />
