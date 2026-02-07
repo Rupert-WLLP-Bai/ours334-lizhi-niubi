@@ -1,0 +1,247 @@
+/* AlbumCard component styles */
+.albumCard {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.2s ease;
+}
+
+.albumCard:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.albumCard:hover {
+  transform: translateY(-4px);
+}
+
+.coverWrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.albumCard:hover .coverWrapper {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.albumCard:focus .coverWrapper {
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+}
+
+.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.05);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.cover.loaded {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Image loading states */
+.imagePlaceholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingSpinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Play overlay */
+.playOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.albumCard:hover .playOverlay {
+  opacity: 1;
+}
+
+.playButton {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #fff;
+  transform: scale(0.8);
+  transition: transform 0.2s ease;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+}
+
+.albumCard:hover .playButton {
+  transform: scale(1);
+}
+
+/* Size variants */
+.small .coverWrapper {
+  border-radius: 8px;
+}
+
+.small .playButton {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.large .coverWrapper {
+  border-radius: 16px;
+}
+
+.large .playButton {
+  width: 72px;
+  height: 72px;
+  font-size: 28px;
+}
+
+/* Info section */
+.info {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.albumName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s ease;
+}
+
+.albumCard:hover .albumName {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.artistName {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.songCount {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+}
+
+/* Album Grid */
+.albumGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  padding: 24px 0;
+}
+
+/* Responsive sizes */
+@media (max-width: 1200px) {
+  .albumGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .albumGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .albumCard.small .coverWrapper {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .albumGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .info {
+    margin-top: 8px;
+  }
+
+  .albumName {
+    font-size: 12px;
+  }
+
+  .artistName {
+    font-size: 10px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+  .albumCard:hover {
+    transform: none;
+  }
+
+  .albumCard:active {
+    transform: scale(0.98);
+  }
+
+  .playOverlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .playButton {
+    transform: scale(0.9);
+  }
+
+  .playButton:active {
+    transform: scale(1);
+  }
+}

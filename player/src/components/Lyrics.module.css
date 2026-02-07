@@ -1,0 +1,215 @@
+/* Lyrics component styles */
+.lyricsContainer {
+  width: 100%;
+  max-width: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+  position: relative;
+}
+
+.lyricsContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.lyricsContainer:active {
+  cursor: grabbing;
+}
+
+.lyricsWrapper {
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100%;
+}
+
+.paddingLine {
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.lyricLine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 24px;
+  margin: 4px 0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.lyricLine:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lyricLine.active {
+  transform: scale(1.08);
+}
+
+.lyricLine.past {
+  opacity: 0.4;
+}
+
+.lyricText {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  transition: all 0.3s ease;
+  font-weight: 400;
+}
+
+.lyricLine.active .lyricText {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+}
+
+.lyricLine:hover .lyricText {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Time indicator for active line */
+.timeIndicator {
+  font-size: 11px;
+  color: rgba(102, 126, 234, 0.6);
+  margin-top: 8px;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+}
+
+.lyricLine.active .timeIndicator {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.hint {
+  font-size: 12px;
+  margin-top: 12px !important;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* Gradient fade effects */
+.lyricsContainer::before,
+.lyricsContainer::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 120px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lyricsContainer::before {
+  top: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 15, 26, 0.9) 0%,
+    rgba(15, 15, 26, 0) 100%
+  );
+}
+
+.lyricsContainer::after {
+  bottom: 0;
+  background: linear-gradient(
+    0deg,
+    rgba(15, 15, 26, 0.9) 0%,
+    rgba(15, 15, 26, 0) 100%
+  );
+}
+
+/* Karaoke style animation for active line */
+@keyframes karaoke {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.lyricLine.active .lyricText {
+  background: linear-gradient(
+    90deg,
+    #667eea 0%,
+    #764ba2 50%,
+    #667eea 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Highlight animation */
+@keyframes highlightPulse {
+  0%, 100% {
+    text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 50px rgba(102, 126, 234, 0.8);
+  }
+}
+
+.lyricLine.active .lyricText {
+  animation: highlightPulse 2s ease-in-out infinite;
+}
+
+/* Touch feedback */
+@media (hover: none) {
+  .lyricLine:active {
+    transform: scale(0.98);
+  }
+
+  .lyricLine:active .lyricText {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lyricsContainer {
+    max-width: 100%;
+    height: 250px;
+  }
+
+  .lyricText {
+    font-size: 14px;
+  }
+
+  .lyricLine.active .lyricText {
+    font-size: 18px;
+  }
+
+  .paddingLine {
+    height: 60px;
+  }
+
+  .lyricsContainer::before,
+  .lyricsContainer::after {
+    height: 80px;
+  }
+}
