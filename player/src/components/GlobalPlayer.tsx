@@ -17,6 +17,9 @@ import {
   Repeat1,
   Shuffle,
   Music,
+  Plus,
+  Trash2,
+  LogIn,
 } from "lucide-react";
 import { usePlayer, type Song, type Album } from "@/app/player/PlayerContext";
 import { formatTime } from "@/lib/lyrics";
@@ -29,6 +32,20 @@ type ActivePlaybackSession = {
   songTitle: string;
   albumName: string;
   startedAtMs: number;
+};
+
+type AuthUser = {
+  id: number;
+  email: string;
+  role: "admin" | "user";
+};
+
+type PlaylistItem = {
+  songId: string;
+  songTitle: string;
+  albumName: string;
+  position: number;
+  createdAt: string;
 };
 
 function createPlaybackSessionId() {
@@ -57,12 +74,149 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   const isFullPlayer = pathname.includes('/player/') && params.song;
 
   const [showPlaylist, setShowPlaylist] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [favoriteSongIds, setFavoriteSongIds] = useState<Set<string>>(new Set());
+  const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
   const activePlaybackRef = useRef<ActivePlaybackSession | null>(null);
   const previousSongIdRef = useRef<string | null>(null);
   const pathnameRef = useRef(pathname);
   const currentTimeRef = useRef(currentTime);
+  const isFavorite = currentSong ? favoriteSongIds.has(currentSong.id) : false;
+
+  const redirectToLogin = useCallback(() => {
+    const nextUrl = encodeURIComponent(pathnameRef.current || "/");
+    router.push(`/auth/login?next=${nextUrl}`);
+  }, [router]);
+
+  const fetchFavorites = useCallback(async () => {
+    if (!authUser) {
+      setFavoriteSongIds(new Set());
+      return;
+    }
+    try {
+      const response = await fetch("/api/library/favorites", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      const ids = new Set<string>(
+        (data.items || []).map((item: { songId: string }) => item.songId)
+      );
+      setFavoriteSongIds(ids);
+    } catch {
+      // ignore favorites load errors
+    }
+  }, [authUser]);
+
+  const fetchPlaylist = useCallback(async () => {
+    if (!authUser) {
+      setPlaylistItems([]);
+      return;
+    }
+    try {
+      const response = await fetch("/api/library/playlist?playlistId=later", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      setPlaylistItems(data.items || []);
+    } catch {
+      // ignore playlist load errors
+    }
+  }, [authUser]);
+
+  const openPlaylistPanel = useCallback(() => {
+    if (!authUser) {
+      redirectToLogin();
+      return;
+    }
+    fetchPlaylist();
+    setShowPlaylist(true);
+  }, [authUser, fetchPlaylist, redirectToLogin]);
+
+  const toggleFavorite = useCallback(async () => {
+    if (!currentSong || !currentAlbum) return;
+    if (!authUser) {
+      redirectToLogin();
+      return;
+    }
+    const nextFavorite = !favoriteSongIds.has(currentSong.id);
+    setFavoriteSongIds((prev) => {
+      const next = new Set(prev);
+      if (nextFavorite) next.add(currentSong.id);
+      else next.delete(currentSong.id);
+      return next;
+    });
+
+    try {
+      const response = await fetch("/api/library/favorites", {
+        method: nextFavorite ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          nextFavorite
+            ? {
+                songId: currentSong.id,
+                songTitle: currentSong.title,
+                albumName: currentAlbum.name,
+              }
+            : {
+                songId: currentSong.id,
+              }
+        ),
+      });
+      if (!response.ok) {
+        throw new Error("favorite request failed");
+      }
+    } catch {
+      setFavoriteSongIds((prev) => {
+        const next = new Set(prev);
+        if (nextFavorite) next.delete(currentSong.id);
+        else next.add(currentSong.id);
+        return next;
+      });
+    }
+  }, [authUser, currentAlbum, currentSong, favoriteSongIds, redirectToLogin]);
+
+  const addCurrentSongToPlaylist = useCallback(async () => {
+    if (!currentSong || !currentAlbum) return;
+    if (!authUser) {
+      redirectToLogin();
+      return;
+    }
+    try {
+      const response = await fetch("/api/library/playlist/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          playlistId: "later",
+          songId: currentSong.id,
+          songTitle: currentSong.title,
+          albumName: currentAlbum.name,
+        }),
+      });
+      if (!response.ok) return;
+      await fetchPlaylist();
+      setShowPlaylist(true);
+    } catch {
+      // ignore add failures
+    }
+  }, [authUser, currentAlbum, currentSong, fetchPlaylist, redirectToLogin]);
+
+  const removeSongFromPlaylist = useCallback(async (songId: string) => {
+    if (!authUser || !songId) return;
+    try {
+      const response = await fetch("/api/library/playlist/items", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          playlistId: "later",
+          songId,
+        }),
+      });
+      if (!response.ok) return;
+      await fetchPlaylist();
+    } catch {
+      // ignore remove failures
+    }
+  }, [authUser, fetchPlaylist]);
 
   const sendPlaybackLog = useCallback((
     event: PlaybackEvent,
@@ -152,6 +306,31 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     currentTimeRef.current = currentTime;
   }, [currentTime]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active) return;
+        setAuthUser(data.user ?? null);
+        setAuthChecked(true);
+      })
+      .catch(() => {
+        if (!active) return;
+        setAuthUser(null);
+        setAuthChecked(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!authChecked) return;
+    fetchFavorites();
+    fetchPlaylist();
+  }, [authChecked, fetchFavorites, fetchPlaylist]);
 
   // 注册跳转方法
   useEffect(() => {
@@ -406,7 +585,10 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                      {playMode === 'single' && <Repeat1 className="w-6 h-6" />}
                      {playMode === 'shuffle' && <Shuffle className="w-6 h-6" />}
                    </button>
-                   <button onClick={() => setIsFavorite(!isFavorite)} className={`p-2 transition-colors ${isFavorite ? 'text-[#ff2d55]' : 'text-white/30'}`}>
+                   <button
+                     onClick={toggleFavorite}
+                     className={`p-2 transition-colors ${isFavorite ? 'text-[#ff2d55]' : 'text-white/30'}`}
+                   >
                      <Heart className={`w-6 h-6 ${isFavorite ? 'fill-current' : ''}`} />
                    </button>
                 </div>
@@ -419,7 +601,20 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                 </div>
                 <div className="flex items-center justify-end gap-4 flex-1">
                   <button className="hidden md:block p-2 text-white/20 hover:text-white"><Volume2 className="w-6 h-6" /></button>
-                  <button onClick={() => setShowPlaylist(true)} className="p-2 text-white/30 hover:text-white"><ListMusic className="w-6 h-6" /></button>
+                  <button
+                    onClick={addCurrentSongToPlaylist}
+                    className="p-2 text-white/30 hover:text-white"
+                    title={authUser ? "加入稍后播放" : "登录后加入稍后播放"}
+                  >
+                    <Plus className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={openPlaylistPanel}
+                    className="p-2 text-white/30 hover:text-white"
+                    title={authUser ? "打开待播清单" : "登录后查看待播清单"}
+                  >
+                    <ListMusic className="w-6 h-6" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -460,7 +655,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                 <button onClick={(e) => playNext(e)} className="w-9 h-9 flex items-center justify-center text-white/40 hover:text-white transition-colors">
                   <SkipForward className="w-5 h-5 fill-current" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); setShowPlaylist(true); }} className="w-9 h-9 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                <button onClick={(e) => { e.stopPropagation(); openPlaylistPanel(); }} className="w-9 h-9 flex items-center justify-center text-white/40 hover:text-white transition-colors">
                   <ListMusic className="w-5 h-5" />
                 </button>
               </div>
@@ -475,7 +670,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
             className="absolute top-0 right-0 w-full max-w-md h-full bg-[#0a0a0a] border-l border-white/10 shadow-2xl flex flex-col animate-in slide-in-from-right duration-500 pointer-events-auto" 
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Playlist Header with Album Context */}
+            {/* Playlist Header */}
             <div className="p-8 border-b border-white/5">
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-2xl font-bold font-righteous text-white/90">待播清單</h3>
@@ -486,68 +681,88 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                   <ChevronDown className="w-6 h-6 rotate-[-90deg]" />
                 </button>
               </div>
-              
-              {currentAlbum && (
-                <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/5">
-                  <div className="relative w-16 h-16 flex-shrink-0 shadow-lg">
-                    {currentAlbum.coverPath ? (
-                      <Image src={currentAlbum.coverPath} alt="" fill unoptimized className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-white/5">
-                        <Music className="w-6 h-6 text-white/10" />
-                      </div>
-                    )}
+              {authUser ? (
+                <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-[#ff2d55] font-bold mb-1">当前用户</div>
+                    <div className="text-sm font-bold truncate text-white">{authUser.email}</div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-[#ff2d55] font-bold mb-1">正在播放專輯</div>
-                    <div className="text-lg font-bold truncate text-white">{currentAlbum.name}</div>
-                    <div className="text-xs text-white/30">{currentAlbum.year || 'Unknown Year'}</div>
-                  </div>
+                  <button
+                    onClick={addCurrentSongToPlaylist}
+                    className="px-3 py-1.5 border border-white/15 text-xs text-white/70 hover:text-white hover:border-white/30 transition-colors"
+                  >
+                    加入当前歌曲
+                  </button>
                 </div>
+              ) : (
+                <button
+                  onClick={redirectToLogin}
+                  className="w-full flex items-center justify-center gap-2 p-4 border border-white/15 text-sm text-white/70 hover:text-white hover:border-white/30 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  登录后可使用收藏与待播清单
+                </button>
               )}
             </div>
 
             {/* Song List */}
             <div className="flex-1 overflow-y-auto py-4 scrollbar-hide">
               <div className="px-4 space-y-1">
-                {currentAlbum?.songs.map((s: Song, index: number) => {
-                  const isCurrent = currentSong?.title === s.title;
-                  return (
-                    <button 
-                      key={s.id} 
-                      onClick={() => { 
-                        router.push(`/player/${encodeURIComponent(currentAlbum.name)}/${encodeURIComponent(s.title)}`); 
-                        setShowPlaylist(false); 
-                      }}
-                      className={`w-full flex items-center gap-4 p-4 transition-all group ${
-                        isCurrent ? "bg-[#ff2d55]/10 border-l-2 border-[#ff2d55]" : "hover:bg-white/5 border-l-2 border-transparent"
-                      }`}
-                    >
-                      <span className={`w-6 text-xs font-bold font-mono transition-colors ${isCurrent ? "text-[#ff2d55]" : "opacity-20 group-hover:opacity-40"}`}>
-                        {(index + 1).toString().padStart(2, '0')}
-                      </span>
-                      <div className="flex-1 text-left min-w-0">
-                        <div className={`font-bold truncate text-sm mb-0.5 ${isCurrent ? "text-[#ff2d55]" : "text-white/70 group-hover:text-white"}`}>
-                          {s.title}
-                        </div>
-                        <div className="text-[10px] text-white/20 uppercase tracking-widest font-medium">李志</div>
+                {playlistItems.length === 0 ? (
+                  <div className="p-8 text-center text-sm text-white/35 border border-dashed border-white/10">
+                    暂无待播歌曲
+                  </div>
+                ) : (
+                  playlistItems.map((item, index) => {
+                    const isCurrent = currentSong?.id === item.songId;
+                    return (
+                      <div
+                        key={`${item.songId}-${item.position}`}
+                        className={`w-full flex items-center gap-4 p-4 transition-all group ${
+                          isCurrent ? "bg-[#ff2d55]/10 border-l-2 border-[#ff2d55]" : "hover:bg-white/5 border-l-2 border-transparent"
+                        }`}
+                      >
+                        <button
+                          onClick={() => {
+                            router.push(`/player/${encodeURIComponent(item.albumName)}/${encodeURIComponent(item.songTitle)}`);
+                            setShowPlaylist(false);
+                          }}
+                          className="w-full flex items-center gap-4 text-left"
+                        >
+                          <span className={`w-6 text-xs font-bold font-mono transition-colors ${isCurrent ? "text-[#ff2d55]" : "opacity-20 group-hover:opacity-40"}`}>
+                            {(index + 1).toString().padStart(2, "0")}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className={`font-bold truncate text-sm mb-0.5 ${isCurrent ? "text-[#ff2d55]" : "text-white/70 group-hover:text-white"}`}>
+                              {item.songTitle}
+                            </div>
+                            <div className="text-[10px] text-white/20 tracking-widest font-medium truncate">{item.albumName}</div>
+                          </div>
+                          {isCurrent && isPlaying && (
+                            <div className="flex items-end gap-0.5 h-3">
+                              <div className="w-0.5 h-full bg-[#ff2d55] animate-[bounce_0.6s_infinite_0.1s]" />
+                              <div className="w-0.5 h-2/3 bg-[#ff2d55] animate-[bounce_0.6s_infinite_0.3s]" />
+                              <div className="w-0.5 h-full bg-[#ff2d55] animate-[bounce_0.6s_infinite_0.2s]" />
+                            </div>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => removeSongFromPlaylist(item.songId)}
+                          className="p-1.5 text-white/30 hover:text-white"
+                          title="从清单移除"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      {isCurrent && isPlaying && (
-                        <div className="flex items-end gap-0.5 h-3">
-                          <div className="w-0.5 h-full bg-[#ff2d55] animate-[bounce_0.6s_infinite_0.1s]" />
-                          <div className="w-0.5 h-2/3 bg-[#ff2d55] animate-[bounce_0.6s_infinite_0.3s]" />
-                          <div className="w-0.5 h-full bg-[#ff2d55] animate-[bounce_0.6s_infinite_0.2s]" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
 
             <div className="p-8 border-t border-white/5 bg-black">
                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-white/20">
-                  <span>共 {currentAlbum?.songs.length || 0} 首歌曲</span>
+                  <span>共 {playlistItems.length} 首歌曲</span>
                   <span>保持理智 相信未來</span>
                </div>
             </div>

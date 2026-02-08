@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, use, useMemo } from "react";
+import { useEffect, useState, use, useMemo, type MouseEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Play, ArrowLeft, Music, MoreHorizontal, Shuffle } from "lucide-react";
+import { Play, ArrowLeft, Music, MoreHorizontal, Shuffle, Plus } from "lucide-react";
 
 interface Song {
   id: string;
@@ -38,6 +38,8 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
   }, [resolvedParams.album]);
   const [album, setAlbum] = useState<AlbumData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authUser, setAuthUser] = useState<{ id: number; email: string; role: string } | null>(null);
+  const [addingSongId, setAddingSongId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/songs")
@@ -51,6 +53,38 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
       })
       .catch(() => setLoading(false));
   }, [albumName]);
+
+  useEffect(() => {
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => setAuthUser(data.user ?? null))
+      .catch(() => setAuthUser(null));
+  }, []);
+
+  const addSongToLater = async (song: Song, event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!authUser) {
+      router.push(`/auth/login?next=${encodeURIComponent(`/player/${encodeURIComponent(albumName)}`)}`);
+      return;
+    }
+    if (!album) return;
+    setAddingSongId(song.id);
+    try {
+      await fetch("/api/library/playlist/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          playlistId: "later",
+          songId: song.id,
+          songTitle: song.title,
+          albumName: album.name,
+        }),
+      });
+    } finally {
+      setAddingSongId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -136,10 +170,10 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
         {/* Song List */}
         <div className="px-4 md:px-6 pb-20">
           <div className="max-w-5xl">
-            <div className="grid grid-cols-[28px_1fr_72px] md:grid-cols-[40px_1fr_100px] px-2 md:px-4 py-3 md:py-4 text-[10px] md:text-xs font-bold uppercase tracking-widest text-white/20 border-b border-white/5 mb-3 md:mb-4">
+            <div className="grid grid-cols-[28px_1fr_88px] md:grid-cols-[40px_1fr_132px] px-2 md:px-4 py-3 md:py-4 text-[10px] md:text-xs font-bold uppercase tracking-widest text-white/20 border-b border-white/5 mb-3 md:mb-4">
               <span>#</span>
               <span>标题</span>
-              <span className="text-right pr-2 md:pr-4">信息</span>
+              <span className="text-right pr-1 md:pr-4">操作</span>
             </div>
             
             <div className="space-y-0.5 md:space-y-1">
@@ -148,7 +182,7 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
                   key={song.id}
                   href={`/player/${encodeURIComponent(album.name)}/${encodeURIComponent(song.title)}`}
                   data-testid="album-song-link"
-                  className="group grid grid-cols-[28px_1fr_72px] md:grid-cols-[40px_1fr_100px] items-center gap-2 md:gap-4 py-3 md:py-4 px-2 md:px-4 hover:bg-white/5 transition-all"
+                  className="group grid grid-cols-[28px_1fr_88px] md:grid-cols-[40px_1fr_132px] items-center gap-2 md:gap-4 py-3 md:py-4 px-2 md:px-4 hover:bg-white/5 transition-all"
                 >
                   <span className="w-6 text-xs md:text-sm font-bold text-white/20 group-hover:text-[#ff2d55] transition-colors">
                     {index + 1}
@@ -157,10 +191,18 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
                     <div className="font-bold truncate group-hover:text-white transition-colors text-sm md:text-base text-white/90">{song.title}</div>
                     <div className="text-[10px] md:text-xs text-white/30 uppercase tracking-tighter">李志</div>
                   </div>
-                  <div className="flex items-center justify-end gap-2 md:gap-4 text-white/20 text-xs md:text-sm">
+                  <div className="flex items-center justify-end gap-2 text-white/20 text-xs md:text-sm">
                     {song.lyricPath && (
                       <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded border border-white/10 font-bold opacity-30 group-hover:opacity-100 transition-opacity tracking-widest">LRC</span>
                     )}
+                    <button
+                      onClick={(event) => addSongToLater(song, event)}
+                      className="inline-flex items-center gap-1 px-2 py-1 border border-white/10 text-[10px] text-white/55 hover:text-white hover:border-white/30 transition-colors"
+                      title={authUser ? "加入稍后播放" : "登录后加入稍后播放"}
+                    >
+                      <Plus className="w-3 h-3" />
+                      {addingSongId === song.id ? "..." : "稍后播"}
+                    </button>
                     <Play className="w-3.5 h-3.5 md:w-4 md:h-4 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 text-[#ff2d55]" />
                   </div>
                 </Link>

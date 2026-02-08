@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Bell, Music, BarChart3 } from "lucide-react";
+import { Search, Bell, Music, BarChart3, LogIn, LogOut } from "lucide-react";
 import { type Album } from "./player/PlayerContext";
 
 export default function Home() {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authUser, setAuthUser] = useState<{ id: number; email: string; role: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/songs")
@@ -19,6 +20,20 @@ export default function Home() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => setAuthUser(data.user ?? null))
+      .catch(() => setAuthUser(null));
+  }, []);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+    }).catch(() => null);
+    setAuthUser(null);
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white pb-32">
@@ -40,6 +55,24 @@ export default function Home() {
             </Link>
             <button className="p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"><Search className="w-5 h-5" /></button>
             <button className="p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"><Bell className="w-5 h-5" /></button>
+            {authUser ? (
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-white/15 text-white/70 hover:text-white hover:border-white/30 transition-colors"
+                title={`已登录：${authUser.email}`}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                退出
+              </button>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-white/15 text-white/70 hover:text-white hover:border-white/30 transition-colors"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                登录
+              </Link>
+            )}
             <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center cursor-pointer hover:scale-105 transition-transform border-2 border-white/10 ml-2">
               <Image src="/lizhi-avatar.png" alt="Lizhi Avatar" width={36} height={36} unoptimized className="object-cover" />
             </div>
