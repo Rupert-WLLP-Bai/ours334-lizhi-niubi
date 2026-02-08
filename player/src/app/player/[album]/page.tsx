@@ -154,7 +154,9 @@ export default function AlbumPage(props: { params: Promise<AlbumParams> }) {
                     {index + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold truncate group-hover:text-white transition-colors text-white/90">{song.title}</div>
+                    <div className="font-bold whitespace-normal break-words leading-snug group-hover:text-white transition-colors text-white/90">
+                      {song.title}
+                    </div>
                     <div className="text-xs text-white/30 uppercase tracking-tighter">李志</div>
                   </div>
                   <div className="flex items-center justify-end gap-4 text-white/20 text-sm">

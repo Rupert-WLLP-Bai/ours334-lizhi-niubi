@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Bell, Music, BarChart3, LogIn, LogOut } from "lucide-react";
+import { Search, Bell, Music, BarChart3, LogIn, LogOut, ListMusic } from "lucide-react";
 import { type Album } from "./player/PlayerContext";
 
 export default function Home() {
@@ -56,6 +56,14 @@ export default function Home() {
               aria-label="播放统计"
             >
               <BarChart3 className="w-5 h-5" />
+            </Link>
+            <Link
+              href="/playlist"
+              className="p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+              title="歌单"
+              aria-label="歌单"
+            >
+              <ListMusic className="w-5 h-5" />
             </Link>
             <button className="hidden sm:inline-flex p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"><Search className="w-5 h-5" /></button>
             <button className="hidden sm:inline-flex p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"><Bell className="w-5 h-5" /></button>

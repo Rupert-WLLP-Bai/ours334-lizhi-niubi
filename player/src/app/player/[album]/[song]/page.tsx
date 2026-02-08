@@ -11,6 +11,14 @@ type PlayerParams = {
   song: string;
 };
 
+function getAdaptiveTitleSizeClass(text?: string) {
+  const length = (text || "").trim().length;
+  if (length >= 42) return "text-lg sm:text-xl md:text-2xl";
+  if (length >= 30) return "text-xl sm:text-2xl md:text-3xl";
+  if (length >= 20) return "text-2xl sm:text-3xl md:text-4xl";
+  return "text-3xl md:text-4xl";
+}
+
 export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
   const resolvedParams = use(props.params);
   
@@ -110,8 +118,14 @@ export default function PlayerPage(props: { params: Promise<PlayerParams> }) {
           </div>
 
           <div className={`mt-8 md:mt-10 w-full text-center transition-all duration-500 ${!hasLyrics ? '' : 'md:text-left'} ${loading ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
-              <h2 className={`${!hasLyrics ? 'text-4xl md:text-6xl' : 'text-3xl md:text-4xl'} font-bold truncate tracking-tight`}>{song?.title || "..."}</h2>
-              <p className={`${!hasLyrics ? 'text-xl md:text-3xl' : 'text-lg md:text-2xl'} text-white/40 font-medium truncate mt-2`}>{song?.album || "..."}</p>
+              <h2
+                className={`${getAdaptiveTitleSizeClass(song?.title)} font-bold tracking-tight leading-tight whitespace-normal break-words`}
+              >
+                {song?.title || "..."}
+              </h2>
+              <p className={`${!hasLyrics ? 'text-lg md:text-2xl' : 'text-base md:text-xl'} text-white/40 font-medium mt-2 whitespace-normal break-words`}>
+                {song?.album || "..."}
+              </p>
           </div>
         </div>
 

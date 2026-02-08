@@ -32,7 +32,7 @@ export default function StatsPage() {
       {/* Background Glow */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[500px] bg-gradient-to-b from-[#ff2d55]/10 to-transparent pointer-events-none -z-10 blur-3xl opacity-50" />
 
-      <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6 py-8 md:py-12 space-y-8 md:space-y-10">
         <header className="flex flex-wrap items-end justify-between gap-6 border-b border-white/5 pb-8">
           <div>
             <h1 className="text-4xl font-righteous tracking-tight mb-4">播放数据统计 <span className="text-xs font-poppins font-normal text-white/30 ml-4 tracking-widest uppercase">Analytics</span></h1>
@@ -52,7 +52,7 @@ export default function StatsPage() {
           </div>
         </header>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
           <div className="border border-white/10 bg-white/[0.02] p-8 shadow-xl hover:border-[#ff2d55]/30 transition-all group">
             <div className="flex items-center gap-2 text-white/40 text-[10px] uppercase tracking-widest font-bold mb-4 group-hover:text-white/60 transition-colors">
               <Clock3 className="w-4 h-4" />
@@ -83,8 +83,8 @@ export default function StatsPage() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-12">
-          <section className="border border-white/10 overflow-hidden bg-black/40 shadow-2xl backdrop-blur-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+          <section className="border border-white/10 overflow-hidden bg-black/40 shadow-2xl backdrop-blur-sm h-full min-w-0">
             <div className="px-8 py-6 text-lg font-bold text-white/90 border-b border-white/5 flex items-center justify-between">
               <span>专辑播放排行</span>
               <span className="text-[10px] uppercase tracking-[0.2em] text-white/20">Top Albums</span>
@@ -123,7 +123,7 @@ export default function StatsPage() {
             </div>
           </section>
 
-          <section className="border border-white/10 overflow-hidden bg-black/40 shadow-2xl backdrop-blur-sm">
+          <section className="border border-white/10 overflow-hidden bg-black/40 shadow-2xl backdrop-blur-sm h-full min-w-0">
             <div className="px-8 py-6 text-lg font-bold text-white/90 border-b border-white/5 flex items-center justify-between">
               <span>单曲播放明细</span>
               <span className="text-[10px] uppercase tracking-[0.2em] text-white/20">Song Details</span>

@@ -53,6 +53,13 @@ function createPlaybackSessionId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function getHeaderTitleSizeClass(title?: string) {
+  const length = (title || "").trim().length;
+  if (length >= 34) return "text-[11px]";
+  if (length >= 24) return "text-xs";
+  return "text-sm";
+}
+
 export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   const { 
     isPlaying, setIsPlaying, 
@@ -410,8 +417,37 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
         return rawSong;
       }
     })();
+    const fromPlaylist = (() => {
+      if (typeof window === "undefined") return false;
+      const search = new URLSearchParams(window.location.search);
+      return search.get("from") === "playlist";
+    })();
 
-    if (currentSong?.title === songTitle && currentAlbum?.name === albumName && queueMode === "album") return;
+    if (
+      currentSong?.title === songTitle &&
+      currentAlbum?.name === albumName &&
+      ((fromPlaylist && queueMode === "playlist") || (!fromPlaylist && queueMode === "album"))
+    ) {
+      return;
+    }
+
+    if (fromPlaylist) {
+      const queue = buildPlaylistQueueSongs(playlistItems, allAlbums);
+      if (queue.length > 0) {
+        const targetSong =
+          queue.find((song) => song.title === songTitle && song.album === albumName) ||
+          queue.find((song) => song.title === songTitle) ||
+          queue[0];
+        const albumForSong = allAlbums.find((album) => album.name === targetSong.album) || currentAlbum;
+        if (albumForSong) {
+          setCurrentAlbum(albumForSong);
+        }
+        setPlaylistQueueSongs(queue);
+        setQueueMode("playlist");
+        setCurrentSong(targetSong);
+        return;
+      }
+    }
 
     const hydrateFromAlbums = (albums: Album[]) => {
       const foundAlbum = (albums || []).find((a: Album) => a.name === albumName);
@@ -434,7 +470,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
         setAllAlbums(albums);
         hydrateFromAlbums(albums);
       });
-  }, [allAlbums, params.album, params.song, currentSong?.title, currentAlbum?.name, queueMode, setCurrentAlbum, setCurrentSong]);
+  }, [allAlbums, buildPlaylistQueueSongs, currentAlbum, currentSong?.title, params.album, params.song, playlistItems, queueMode, setCurrentAlbum, setCurrentSong]);
 
   useEffect(() => {
     const currentSongId = currentSong?.id ?? null;
@@ -616,7 +652,11 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
           </button>
           <div className="flex flex-col items-center">
             <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-1 font-bold">正在播放</span>
-            <span className="text-sm font-medium truncate max-w-[200px]">{currentSong?.title || "..."}</span>
+            <span
+              className={`${getHeaderTitleSizeClass(currentSong?.title)} font-medium text-center leading-tight whitespace-normal break-words max-w-[200px]`}
+            >
+              {currentSong?.title || "..."}
+            </span>
           </div>
           <button className="p-2 hover:bg-white/10 transition-colors">
             <MoreHorizontal className="w-6 h-6" />
