@@ -3,6 +3,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { DatabaseSync } from "node:sqlite";
+import { enqueueSupabaseSync, upsertRows } from "@/lib/supabaseSync";
 
 const DB_FILE_NAME = "playback_logs.sqlite";
 export const QUALIFIED_PLAY_SECONDS = 30;
@@ -116,9 +117,10 @@ function openDbAtPath(dbPath) {
         duration_seconds,
         pathname,
         user_agent,
-        user_id
+        user_id,
+        created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `),
   };
 }
@@ -207,6 +209,7 @@ function normalizeNumber(value) {
  */
 export function insertPlaybackLog(entry) {
   getDb();
+  const createdAt = new Date().toISOString();
   const values = [
     entry.sessionId,
     entry.songId,
@@ -219,28 +222,53 @@ export function insertPlaybackLog(entry) {
     entry.pathname,
     entry.userAgent,
     normalizeNumber(entry.userId),
+    createdAt,
   ];
 
+  let result;
   try {
-    globalThis.__playbackInsertStmt.run(...values);
+    result = globalThis.__playbackInsertStmt.run(...values);
   } catch (error) {
     if (isReadonlySqliteError(error)) {
       // 当默认库只读时，切换到可写的 fallback 路径再重试一次
       resetDbState();
       initializeDb(true);
-      globalThis.__playbackInsertStmt.run(...values);
-      return;
-    }
-
-    if (isColumnIndexOutOfRangeError(error)) {
+      result = globalThis.__playbackInsertStmt.run(...values);
+    } else if (isColumnIndexOutOfRangeError(error)) {
       // 开发模式热更新后可能残留旧的 prepared statement，重建后再试一次
       resetDbState();
       initializeDb();
-      globalThis.__playbackInsertStmt.run(...values);
-      return;
+      result = globalThis.__playbackInsertStmt.run(...values);
+    } else {
+      throw error;
     }
+  }
 
-    throw error;
+  const insertedId = Number(result?.lastInsertRowid ?? 0);
+  if (insertedId > 0) {
+    enqueueSupabaseSync("playback_logs.insert", async () => {
+      await upsertRows(
+        "playback_logs",
+        [
+          {
+            id: insertedId,
+            session_id: entry.sessionId,
+            song_id: entry.songId,
+            song_title: entry.songTitle,
+            album_name: entry.albumName,
+            event: entry.event,
+            position_seconds: normalizeNumber(entry.positionSeconds) ?? 0,
+            played_seconds: normalizeNumber(entry.playedSeconds) ?? 0,
+            duration_seconds: normalizeNumber(entry.durationSeconds),
+            pathname: entry.pathname,
+            user_agent: entry.userAgent,
+            user_id: normalizeNumber(entry.userId),
+            created_at: createdAt,
+          },
+        ],
+        ["id"],
+      );
+    });
   }
 }
 

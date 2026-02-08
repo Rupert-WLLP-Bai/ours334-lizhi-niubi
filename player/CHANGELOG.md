@@ -82,6 +82,61 @@
 ## 2026-02-08
 
 ### Added
+- Added Supabase migration and sync tooling:
+  - `scripts/sql/supabase-init.sql` (Postgres schema for logs + user library tables)
+  - `scripts/migrate-sqlite-to-supabase.mjs` (SQLite -> Supabase backfill)
+  - `scripts/verify-sqlite-supabase-sync.mjs` (row count verification)
+  - `SUPABASE_MIGRATION.md` (usage guide)
+- Added npm scripts:
+  - `migrate:sqlite:supabase`
+  - `verify:sqlite:supabase`
+- Added Supabase env examples in `.env.example`:
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `SUPABASE_SCHEMA`
+  - `SUPABASE_SYNC_DISABLED`
+
+### Changed
+- Updated `src/lib/playbackLogs.js`
+  - Playback log insert now includes explicit `created_at`
+  - Added background dual-write sync to Supabase `playback_logs`
+- Updated `src/lib/userLibraryStore.js`
+  - Added background dual-write sync for:
+    - `users`
+    - `auth_sessions`
+    - `favorite_songs`
+    - `playlist_items`
+  - Local SQLite remains primary source of truth for reads
+- Added `src/lib/supabaseSync.js`
+  - Centralized Supabase REST sync helper with safe async error handling
+
+### 2026-02-08 (Supabase primary mode)
+
+### Added
+- Added Supabase primary store modules:
+  - `src/lib/userLibraryStoreSupabase.js`
+  - `src/lib/playbackLogsSupabase.js`
+- Added Supabase primary env flag:
+  - `SUPABASE_PRIMARY=true` in `.env.example`
+
+### Changed
+- Updated auth/library/playback API routes to read/write via Supabase primary stores:
+  - `src/app/api/auth/*.ts`
+  - `src/app/api/admin/users/route.ts`
+  - `src/app/api/library/**/*.ts`
+  - `src/app/api/playback/*.ts`
+- Updated `src/lib/auth.ts` session/user helpers to async Supabase-backed flows
+- Updated `src/app/stats/page.tsx` to read stats through Supabase path
+- Updated `src/lib/supabaseSync.js`
+  - Added primary mode detection
+  - Added generic Supabase GET/insert/pagination helpers
+  - Disabled background sync queue when primary mode is enabled (avoids duplicate writes)
+
+### Behavior
+- Supabase is now primary source for reads and writes when configured.
+- Local sqlite is retained as best-effort backup.
+
+### Added
 - Added lightweight auth pages and APIs:
   - `src/app/auth/login/page.tsx` (public login page, no public register)
   - `src/app/api/auth/login/route.ts`

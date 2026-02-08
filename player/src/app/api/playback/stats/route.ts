@@ -3,7 +3,7 @@ import {
   getSessionTokenFromRequest,
   getUserFromRawSessionToken,
 } from "@/lib/auth";
-import { getPlaybackLogDbPath, getPlaybackStats } from "@/lib/playbackLogs";
+import { getPlaybackLogDbPath, getPlaybackStats } from "@/lib/playbackLogsSupabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,15 +12,15 @@ export const revalidate = 0;
 export async function GET(request: NextRequest) {
   try {
     const token = getSessionTokenFromRequest(request);
-    const user = getUserFromRawSessionToken(token);
+    const user = await getUserFromRawSessionToken(token);
     const scope = request.nextUrl.searchParams.get("scope");
     const canReadAll = user?.role === "admin" && scope === "all";
 
     const stats = canReadAll
-      ? getPlaybackStats({ includeAnonymous: false })
+      ? await getPlaybackStats({ includeAnonymous: false })
       : user
-        ? getPlaybackStats({ userId: user.id })
-        : getPlaybackStats({ includeAnonymous: false });
+        ? await getPlaybackStats({ userId: user.id })
+        : await getPlaybackStats({ includeAnonymous: false });
     return NextResponse.json({
       ...stats,
       user: user

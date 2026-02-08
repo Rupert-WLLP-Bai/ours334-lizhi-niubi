@@ -6,7 +6,7 @@ import {
 import {
   DEFAULT_LIBRARY_PLAYLIST_ID,
   reorderPlaylistItems,
-} from "@/lib/userLibraryStore";
+} from "@/lib/userLibraryStoreSupabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,13 +19,13 @@ function readString(value: unknown, maxLength = 300): string | null {
   return trimmed.slice(0, maxLength);
 }
 
-function requireUser(request: NextRequest) {
+async function requireUser(request: NextRequest) {
   const token = getSessionTokenFromRequest(request);
-  return getUserFromRawSessionToken(token);
+  return await getUserFromRawSessionToken(token);
 }
 
 export async function PATCH(request: NextRequest) {
-  const user = requireUser(request);
+  const user = await requireUser(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -49,7 +49,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "songIds contains invalid values" }, { status: 400 });
   }
 
-  const ok = reorderPlaylistItems({
+  const ok = await reorderPlaylistItems({
     userId: user.id,
     playlistId,
     songIds,

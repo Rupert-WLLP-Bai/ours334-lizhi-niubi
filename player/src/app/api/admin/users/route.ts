@@ -4,7 +4,7 @@ import {
   getUserFromRawSessionToken,
   hashPassword,
 } from "@/lib/auth";
-import { createUser, getUserByAccount } from "@/lib/userLibraryStore";
+import { createUser, getUserByAccount } from "@/lib/userLibraryStoreSupabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ function readString(value: unknown, maxLength = 320): string | null {
 
 export async function POST(request: NextRequest) {
   const token = getSessionTokenFromRequest(request);
-  const currentUser = getUserFromRawSessionToken(token);
+  const currentUser = await getUserFromRawSessionToken(token);
   if (!currentUser || currentUser.role !== "admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -45,11 +45,11 @@ export async function POST(request: NextRequest) {
   if (password.length < 4) {
     return NextResponse.json({ error: "Password must be at least 4 characters" }, { status: 400 });
   }
-  if (getUserByAccount(account)) {
+  if (await getUserByAccount(account)) {
     return NextResponse.json({ error: "User already exists" }, { status: 409 });
   }
 
-  const user = createUser({
+  const user = await createUser({
     email: account,
     passwordHash: hashPassword(password),
     role,

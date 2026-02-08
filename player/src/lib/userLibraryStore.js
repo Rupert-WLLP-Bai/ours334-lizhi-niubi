@@ -1,6 +1,12 @@
 import "server-only";
 import { DatabaseSync } from "node:sqlite";
 import { getPlaybackLogDbPath } from "@/lib/playbackLogs";
+import {
+  deleteRows,
+  enqueueSupabaseSync,
+  patchRows,
+  upsertRows,
+} from "@/lib/supabaseSync";
 
 const DEFAULT_PLAYLIST_ID = "later";
 const USER_ROLES = new Set(["admin", "user"]);
@@ -18,6 +24,101 @@ function toSafeInt(value) {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function toBool(value) {
+  if (value === true || value === false) return value;
+  return Number(value) === 1;
+}
+
+function enqueueUserUpsert(user) {
+  if (!user) return;
+  enqueueSupabaseSync("users.upsert", async () => {
+    await upsertRows(
+      "users",
+      [
+        {
+          id: Number(user.id),
+          email: String(user.email),
+          password_hash: String(user.passwordHash),
+          role: String(user.role),
+          is_active: toBool(user.isActive),
+          created_at: String(user.createdAt),
+          updated_at: String(user.updatedAt),
+        },
+      ],
+      ["id"],
+    );
+  });
+}
+
+function enqueueAuthSessionUpsert(sessionRow) {
+  if (!sessionRow) return;
+  enqueueSupabaseSync("auth_sessions.upsert", async () => {
+    await upsertRows(
+      "auth_sessions",
+      [
+        {
+          id: Number(sessionRow.id),
+          user_id: Number(sessionRow.user_id),
+          token_hash: String(sessionRow.token_hash),
+          created_at: String(sessionRow.created_at),
+          expires_at: String(sessionRow.expires_at),
+        },
+      ],
+      ["token_hash"],
+    );
+  });
+}
+
+function enqueueFavoriteUpsert(row) {
+  if (!row) return;
+  enqueueSupabaseSync("favorite_songs.upsert", async () => {
+    await upsertRows(
+      "favorite_songs",
+      [
+        {
+          id: Number(row.id),
+          user_id: Number(row.user_id),
+          song_id: String(row.song_id),
+          song_title: String(row.song_title),
+          album_name: String(row.album_name),
+          created_at: String(row.created_at),
+        },
+      ],
+      ["user_id", "song_id"],
+    );
+  });
+}
+
+function enqueuePlaylistSnapshotSync(userId, playlistId) {
+  const normalizedUserId = toSafeInt(userId);
+  if (normalizedUserId === null) return;
+  const normalizedPlaylistId = normalizePlaylistId(playlistId);
+  const rows = listPlaylistItems(normalizedUserId, normalizedPlaylistId);
+
+  enqueueSupabaseSync("playlist_items.snapshot", async () => {
+    await deleteRows("playlist_items", [
+      { column: "user_id", operator: "eq", value: normalizedUserId },
+      { column: "playlist_id", operator: "eq", value: normalizedPlaylistId },
+    ]);
+
+    if (rows.length === 0) return;
+
+    await upsertRows(
+      "playlist_items",
+      rows.map((row) => ({
+        user_id: normalizedUserId,
+        playlist_id: normalizedPlaylistId,
+        song_id: row.songId,
+        song_title: row.songTitle,
+        album_name: row.albumName,
+        position: Number(row.position),
+        created_at: row.createdAt,
+      })),
+      ["user_id", "playlist_id", "song_id"],
+    );
+  });
 }
 
 function ensureSchema(db) {
@@ -160,7 +261,9 @@ export function createUser({ email, passwordHash, role = "user" }) {
     INSERT INTO users (email, password_hash, role, is_active, created_at, updated_at)
     VALUES (?, ?, ?, 1, ?, ?);
   `).run(normalizedAccount, passwordHash, normalizedRole, now, now);
-  return getUserById(result.lastInsertRowid);
+  const user = getUserById(result.lastInsertRowid);
+  enqueueUserUpsert(user);
+  return user;
 }
 
 export function upsertUserByEmail({ email, passwordHash, role = "user" }) {
@@ -178,7 +281,9 @@ export function upsertUserByAccount({ account, passwordHash, role = "user" }) {
       SET password_hash = ?, role = ?, is_active = 1, updated_at = ?
       WHERE id = ?;
     `).run(passwordHash, normalizedRole, now, existing.id);
-    return getUserById(existing.id);
+    const user = getUserById(existing.id);
+    enqueueUserUpsert(user);
+    return user;
   }
   return createUser({ email: account, passwordHash, role });
 }
@@ -190,21 +295,39 @@ export function createAuthSession({ userId, tokenHash, expiresAt }) {
   if (typeof expiresAt !== "string" || !expiresAt) throw new Error("Invalid expiresAt");
 
   const db = getDb();
-  db.prepare(`
-    INSERT INTO auth_sessions (user_id, token_hash, expires_at)
-    VALUES (?, ?, ?);
-  `).run(normalizedUserId, tokenHash, expiresAt);
+  const createdAt = nowIso();
+  const result = db.prepare(`
+    INSERT INTO auth_sessions (user_id, token_hash, created_at, expires_at)
+    VALUES (?, ?, ?, ?);
+  `).run(normalizedUserId, tokenHash, createdAt, expiresAt);
+  const row = db.prepare(`
+    SELECT id, user_id, token_hash, created_at, expires_at
+    FROM auth_sessions
+    WHERE id = ?;
+  `).get(Number(result.lastInsertRowid));
+  enqueueAuthSessionUpsert(row);
 }
 
 export function deleteAuthSession(tokenHash) {
   if (typeof tokenHash !== "string" || !tokenHash) return;
   const db = getDb();
   db.prepare(`DELETE FROM auth_sessions WHERE token_hash = ?;`).run(tokenHash);
+  enqueueSupabaseSync("auth_sessions.delete", async () => {
+    await deleteRows("auth_sessions", [
+      { column: "token_hash", operator: "eq", value: tokenHash },
+    ]);
+  });
 }
 
 export function deleteExpiredSessions() {
   const db = getDb();
-  db.prepare(`DELETE FROM auth_sessions WHERE expires_at <= ?;`).run(nowIso());
+  const cutoff = nowIso();
+  db.prepare(`DELETE FROM auth_sessions WHERE expires_at <= ?;`).run(cutoff);
+  enqueueSupabaseSync("auth_sessions.delete_expired", async () => {
+    await deleteRows("auth_sessions", [
+      { column: "expires_at", operator: "lte", value: cutoff },
+    ]);
+  });
 }
 
 export function getSessionUserByTokenHash(tokenHash) {
@@ -260,6 +383,13 @@ export function addFavoriteSong({ userId, songId, songTitle, albumName }) {
     INSERT OR IGNORE INTO favorite_songs (user_id, song_id, song_title, album_name)
     VALUES (?, ?, ?, ?);
   `).run(normalizedUserId, songId, songTitle, albumName);
+  const row = db.prepare(`
+    SELECT id, user_id, song_id, song_title, album_name, created_at
+    FROM favorite_songs
+    WHERE user_id = ? AND song_id = ?
+    LIMIT 1;
+  `).get(normalizedUserId, songId);
+  enqueueFavoriteUpsert(row);
 }
 
 export function removeFavoriteSong({ userId, songId }) {
@@ -271,6 +401,12 @@ export function removeFavoriteSong({ userId, songId }) {
     DELETE FROM favorite_songs
     WHERE user_id = ? AND song_id = ?;
   `).run(normalizedUserId, songId);
+  enqueueSupabaseSync("favorite_songs.delete", async () => {
+    await deleteRows("favorite_songs", [
+      { column: "user_id", operator: "eq", value: normalizedUserId },
+      { column: "song_id", operator: "eq", value: songId },
+    ]);
+  });
 }
 
 function normalizePlaylistId(playlistId) {
@@ -345,6 +481,7 @@ export function addPlaylistItem({ userId, playlistId = DEFAULT_PLAYLIST_ID, song
       VALUES (?, ?, ?, ?, ?, ?);
     `).run(normalizedUserId, normalizedPlaylistId, songId, songTitle, albumName, nextPosition);
     db.exec("COMMIT;");
+    enqueuePlaylistSnapshotSync(normalizedUserId, normalizedPlaylistId);
     return true;
   } catch (error) {
     db.exec("ROLLBACK;");
@@ -367,6 +504,7 @@ export function removePlaylistItem({ userId, playlistId = DEFAULT_PLAYLIST_ID, s
     `).run(normalizedUserId, normalizedPlaylistId, songId);
     compactPlaylistPositions(db, normalizedUserId, normalizedPlaylistId);
     db.exec("COMMIT;");
+    enqueuePlaylistSnapshotSync(normalizedUserId, normalizedPlaylistId);
   } catch (error) {
     db.exec("ROLLBACK;");
     throw error;
@@ -403,6 +541,7 @@ export function reorderPlaylistItems({ userId, playlistId = DEFAULT_PLAYLIST_ID,
       updateStmt.run(index, normalizedUserId, normalizedPlaylistId, songId);
     });
     db.exec("COMMIT;");
+    enqueuePlaylistSnapshotSync(normalizedUserId, normalizedPlaylistId);
     return true;
   } catch (error) {
     db.exec("ROLLBACK;");
@@ -420,6 +559,13 @@ export function migratePlaybackLogsToUserId(userId) {
     SET user_id = ?
     WHERE user_id IS NULL;
   `).run(normalizedUserId);
+  enqueueSupabaseSync("playback_logs.patch_user_id", async () => {
+    await patchRows(
+      "playback_logs",
+      { user_id: normalizedUserId },
+      [{ column: "user_id", operator: "is", value: null }],
+    );
+  });
   const after = db.prepare(`SELECT COUNT(*) AS count FROM playback_logs WHERE user_id IS NULL;`).get();
   return {
     migratedCount: Number(before.count) - Number(after.count),

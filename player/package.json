@@ -7,6 +7,8 @@
     "build": "next build",
     "build:album-index": "node scripts/build-album-index.mjs",
     "migrate:logs:user": "node scripts/migrate-logs-to-user.mjs",
+    "migrate:sqlite:supabase": "node --env-file=.env scripts/migrate-sqlite-to-supabase.mjs",
+    "verify:sqlite:supabase": "node --env-file=.env scripts/verify-sqlite-supabase-sync.mjs",
     "start": "next start",
     "lint": "eslint",
     "upload:albums:s3": "bash scripts/upload-albums-s3.sh",
@@ -19,7 +21,8 @@
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "undici": "^7.16.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",

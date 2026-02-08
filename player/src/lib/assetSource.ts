@@ -48,3 +48,11 @@ export function buildCloudAssetUrl(
 
   return `${baseUrl}/${segments.join("/")}`;
 }
+
+export function isCloudflareS3ApiEndpointUrl(value: string): boolean {
+  try {
+    return new URL(value).hostname.endsWith(".r2.cloudflarestorage.com");
+  } catch {
+    return false;
+  }
+}

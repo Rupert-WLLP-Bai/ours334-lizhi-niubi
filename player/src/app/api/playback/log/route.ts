@@ -3,7 +3,7 @@ import {
   getSessionTokenFromRequest,
   getUserFromRawSessionToken,
 } from "@/lib/auth";
-import { getPlaybackLogDbPath, insertPlaybackLog } from "@/lib/playbackLogs";
+import { getPlaybackLogDbPath, insertPlaybackLog } from "@/lib/playbackLogsSupabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ function readNumber(value: unknown): number | null {
 
 export async function POST(request: NextRequest) {
   const token = getSessionTokenFromRequest(request);
-  const user = getUserFromRawSessionToken(token);
+  const user = await getUserFromRawSessionToken(token);
   if (!user) {
     return new NextResponse(null, { status: 204 });
   }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    insertPlaybackLog({
+    await insertPlaybackLog({
       sessionId,
       songId,
       songTitle,

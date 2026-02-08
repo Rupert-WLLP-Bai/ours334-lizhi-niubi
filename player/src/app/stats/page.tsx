@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Clock3, ListMusic, PlayCircle } from "lucide-react";
 import { StatsRefreshButton } from "@/components/StatsRefreshButton";
-import { getPlaybackLogDbPath, getPlaybackStats } from "@/lib/playbackLogs";
+import { getPlaybackLogDbPath, getPlaybackStats } from "@/lib/playbackLogsSupabase";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,8 +23,8 @@ function formatDateTime(iso: string | null) {
   return date.toLocaleString("zh-CN", { hour12: false });
 }
 
-export default function StatsPage() {
-  const { summary, albums, songs, thresholdSeconds } = getPlaybackStats();
+export default async function StatsPage() {
+  const { summary, albums, songs, thresholdSeconds } = await getPlaybackStats();
   const dbPath = getPlaybackLogDbPath();
 
   return (

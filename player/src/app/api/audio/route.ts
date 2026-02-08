@@ -3,7 +3,11 @@ import { createReadStream } from "fs";
 import { stat } from "fs/promises";
 import { resolveAlbumFilePath } from "@/lib/albums";
 import { findSongInCatalog, loadAlbumCatalogIndex } from "@/lib/albumCatalog";
-import { buildCloudAssetUrl, isCloudAssetSource } from "@/lib/assetSource";
+import {
+  buildCloudAssetUrl,
+  isCloudAssetSource,
+  isCloudflareS3ApiEndpointUrl,
+} from "@/lib/assetSource";
 
 const SUPPORTED_AUDIO_EXTENSIONS = [".flac", ".m4a", ".mp3"] as const;
 
@@ -58,6 +62,11 @@ async function resolveCloudAudioRedirect(album: string, song: string): Promise<s
   const url = buildCloudAssetUrl(album, songRecord.audioFileName);
   if (!url) {
     throw new Error("ASSET_BASE_URL is missing for cloud audio mode");
+  }
+  if (isCloudflareS3ApiEndpointUrl(url)) {
+    throw new Error(
+      "ASSET_BASE_URL points to the R2 S3 API endpoint. Use a public r2.dev/custom domain URL."
+    );
   }
   return url;
 }

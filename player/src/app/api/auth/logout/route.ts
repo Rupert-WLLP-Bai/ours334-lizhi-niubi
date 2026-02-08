@@ -11,7 +11,7 @@ export const revalidate = 0;
 
 export async function POST(request: NextRequest) {
   const token = getSessionTokenFromRequest(request);
-  removeSessionByRawToken(token);
+  await removeSessionByRawToken(token);
   const response = NextResponse.json({ ok: true });
   clearAuthCookie(response);
   return response;

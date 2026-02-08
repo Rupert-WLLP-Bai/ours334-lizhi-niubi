@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
+import { ProxyAgent, type Dispatcher } from "undici";
 import { resolveAlbumFilePath } from "@/lib/albums";
 import { findSongInCatalog, loadAlbumCatalogIndex } from "@/lib/albumCatalog";
-import { buildCloudAssetUrl, isCloudAssetSource } from "@/lib/assetSource";
+import {
+  buildCloudAssetUrl,
+  isCloudAssetSource,
+  isCloudflareS3ApiEndpointUrl,
+} from "@/lib/assetSource";
 
 const MAX_FETCH_ATTEMPTS = 3;
 const FETCH_TIMEOUT_MS = 8_000;
@@ -17,6 +22,9 @@ const RETRYABLE_NETWORK_CODES = new Set([
   "UND_ERR_HEADERS_TIMEOUT",
   "UND_ERR_BODY_TIMEOUT",
 ]);
+const PROXY_ENV_KEYS = ["HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy"] as const;
+
+let cachedProxyDispatcher: Dispatcher | null | undefined;
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -36,16 +44,56 @@ function isRetryableNetworkError(error: unknown): boolean {
   return code ? RETRYABLE_NETWORK_CODES.has(code) : false;
 }
 
+function getProxyUrlFromEnv(env: NodeJS.ProcessEnv = process.env): string | null {
+  for (const key of PROXY_ENV_KEYS) {
+    const value = env[key]?.trim();
+    if (!value) continue;
+    try {
+      new URL(value);
+      return value;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+function getCloudLyricsDispatcher(env: NodeJS.ProcessEnv = process.env): Dispatcher | undefined {
+  if (cachedProxyDispatcher !== undefined) {
+    return cachedProxyDispatcher ?? undefined;
+  }
+
+  const proxyUrl = getProxyUrlFromEnv(env);
+  if (!proxyUrl) {
+    cachedProxyDispatcher = null;
+    return undefined;
+  }
+
+  try {
+    cachedProxyDispatcher = new ProxyAgent(proxyUrl);
+  } catch (error) {
+    console.error("Invalid proxy URL for cloud lyrics fetch:", error);
+    cachedProxyDispatcher = null;
+  }
+
+  return cachedProxyDispatcher ?? undefined;
+}
+
 async function fetchLyricsTextWithRetry(lyricsUrl: string): Promise<string | null> {
+  const dispatcher = getCloudLyricsDispatcher();
+
   for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
     try {
-      const response = await fetch(lyricsUrl, {
+      const requestInit: RequestInit & { dispatcher?: Dispatcher } = {
         cache: "no-store",
         signal: controller.signal,
-      });
+      };
+      if (dispatcher) requestInit.dispatcher = dispatcher;
+
+      const response = await fetch(lyricsUrl, requestInit);
 
       if (response.status === 404) {
         return null;
@@ -83,6 +131,11 @@ async function readCloudLyrics(album: string, song: string): Promise<string | nu
   const lyricsUrl = buildCloudAssetUrl(album, `${song}.lrc`);
   if (!lyricsUrl) {
     throw new Error("ASSET_BASE_URL is missing for cloud lyrics mode");
+  }
+  if (isCloudflareS3ApiEndpointUrl(lyricsUrl)) {
+    throw new Error(
+      "ASSET_BASE_URL points to the R2 S3 API endpoint. Use a public r2.dev/custom domain URL."
+    );
   }
 
   return fetchLyricsTextWithRetry(lyricsUrl);

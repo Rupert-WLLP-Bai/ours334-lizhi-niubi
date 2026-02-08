@@ -7,7 +7,7 @@ import {
   deleteAuthSession,
   getSessionUserByTokenHash,
   getUserById,
-} from "@/lib/userLibraryStore";
+} from "@/lib/userLibraryStoreSupabase";
 
 export const AUTH_COOKIE_NAME = "lizhi_auth_session";
 const DEFAULT_SESSION_DAYS = 14;
@@ -55,12 +55,12 @@ export function verifyPassword(password: string, storedHash: string): boolean {
   return safeCompare(actualHash, expectedHash);
 }
 
-export function createPersistedSession(userId: number) {
+export async function createPersistedSession(userId: number) {
   const token = createSessionToken();
   const tokenHash = hashSessionToken(token);
   const maxAge = getSessionMaxAgeSeconds();
   const expiresAt = new Date(Date.now() + maxAge * 1000).toISOString();
-  createAuthSession({
+  await createAuthSession({
     userId,
     tokenHash,
     expiresAt,
@@ -93,13 +93,13 @@ export function clearAuthCookie(response: NextResponse): void {
   });
 }
 
-export function removeSessionByRawToken(rawToken: string | null): void {
+export async function removeSessionByRawToken(rawToken: string | null): Promise<void> {
   if (!rawToken) return;
   const tokenHash = hashSessionToken(rawToken);
-  deleteAuthSession(tokenHash);
+  await deleteAuthSession(tokenHash);
 }
 
-export function getUserFromRawSessionToken(rawToken: string | null) {
+export async function getUserFromRawSessionToken(rawToken: string | null) {
   if (!rawToken) return null;
   const tokenHash = hashSessionToken(rawToken);
   return getSessionUserByTokenHash(tokenHash);
@@ -109,10 +109,10 @@ export async function getCurrentUserFromServerCookies() {
   const cookieStore = await cookies();
   const rawToken = cookieStore.get(AUTH_COOKIE_NAME)?.value ?? null;
   if (!rawToken) return null;
-  return getUserFromRawSessionToken(rawToken);
+  return await getUserFromRawSessionToken(rawToken);
 }
 
 export async function getCurrentUserById(userId: number | null | undefined) {
   if (typeof userId !== "number" || !Number.isFinite(userId)) return null;
-  return getUserById(userId);
+  return await getUserById(userId);
 }

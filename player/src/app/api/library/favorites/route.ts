@@ -7,7 +7,7 @@ import {
   addFavoriteSong,
   listFavoriteSongs,
   removeFavoriteSong,
-} from "@/lib/userLibraryStore";
+} from "@/lib/userLibraryStoreSupabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,22 +20,22 @@ function readString(value: unknown, maxLength = 300): string | null {
   return trimmed.slice(0, maxLength);
 }
 
-function requireUser(request: NextRequest) {
+async function requireUser(request: NextRequest) {
   const token = getSessionTokenFromRequest(request);
-  return getUserFromRawSessionToken(token);
+  return await getUserFromRawSessionToken(token);
 }
 
 export async function GET(request: NextRequest) {
-  const user = requireUser(request);
+  const user = await requireUser(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const items = listFavoriteSongs(user.id);
+  const items = await listFavoriteSongs(user.id);
   return NextResponse.json({ items });
 }
 
 export async function POST(request: NextRequest) {
-  const user = requireUser(request);
+  const user = await requireUser(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid favorite payload" }, { status: 400 });
   }
 
-  addFavoriteSong({
+  await addFavoriteSong({
     userId: user.id,
     songId,
     songTitle,
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const user = requireUser(request);
+  const user = await requireUser(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -82,7 +82,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "songId is required" }, { status: 400 });
   }
 
-  removeFavoriteSong({
+  await removeFavoriteSong({
     userId: user.id,
     songId,
   });

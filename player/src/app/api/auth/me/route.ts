@@ -10,7 +10,7 @@ export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   const token = getSessionTokenFromRequest(request);
-  const user = getUserFromRawSessionToken(token);
+  const user = await getUserFromRawSessionToken(token);
 
   if (!user) {
     return NextResponse.json({ user: null });

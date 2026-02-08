@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import { resolveAlbumFilePath } from "@/lib/albums";
 import { findAlbumInCatalog, loadAlbumCatalogIndex } from "@/lib/albumCatalog";
-import { buildCloudAssetUrl, isCloudAssetSource } from "@/lib/assetSource";
+import {
+  buildCloudAssetUrl,
+  isCloudAssetSource,
+  isCloudflareS3ApiEndpointUrl,
+} from "@/lib/assetSource";
 
 const COVER_FILE_CANDIDATES = ["cover.jpg", "Cover.jpg"] as const;
 
@@ -15,6 +19,11 @@ async function resolveCloudCoverRedirect(album: string): Promise<string | null> 
   const url = buildCloudAssetUrl(album, coverFileName);
   if (!url) {
     throw new Error("ASSET_BASE_URL is missing for cloud cover mode");
+  }
+  if (isCloudflareS3ApiEndpointUrl(url)) {
+    throw new Error(
+      "ASSET_BASE_URL points to the R2 S3 API endpoint. Use a public r2.dev/custom domain URL."
+    );
   }
   return url;
 }

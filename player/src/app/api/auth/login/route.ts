@@ -4,7 +4,7 @@ import {
   setAuthCookie,
   verifyPassword,
 } from "@/lib/auth";
-import { getUserByAccount } from "@/lib/userLibraryStore";
+import { getUserByAccount } from "@/lib/userLibraryStoreSupabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,12 +36,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Account and password are required" }, { status: 400 });
   }
 
-  const user = getUserByAccount(account);
+  const user = await getUserByAccount(account);
   if (!user || !user.isActive || !verifyPassword(password, user.passwordHash)) {
     return NextResponse.json({ error: "Invalid account or password" }, { status: 401 });
   }
 
-  const session = createPersistedSession(user.id);
+  const session = await createPersistedSession(user.id);
   const response = NextResponse.json({
     user: {
       id: user.id,

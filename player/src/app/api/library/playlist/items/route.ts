@@ -7,7 +7,7 @@ import {
   addPlaylistItem,
   DEFAULT_LIBRARY_PLAYLIST_ID,
   removePlaylistItem,
-} from "@/lib/userLibraryStore";
+} from "@/lib/userLibraryStoreSupabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,13 +20,13 @@ function readString(value: unknown, maxLength = 300): string | null {
   return trimmed.slice(0, maxLength);
 }
 
-function requireUser(request: NextRequest) {
+async function requireUser(request: NextRequest) {
   const token = getSessionTokenFromRequest(request);
-  return getUserFromRawSessionToken(token);
+  return await getUserFromRawSessionToken(token);
 }
 
 export async function POST(request: NextRequest) {
-  const user = requireUser(request);
+  const user = await requireUser(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid playlist payload" }, { status: 400 });
   }
 
-  addPlaylistItem({
+  await addPlaylistItem({
     userId: user.id,
     playlistId,
     songId,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const user = requireUser(request);
+  const user = await requireUser(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -77,7 +77,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "songId is required" }, { status: 400 });
   }
 
-  removePlaylistItem({
+  await removePlaylistItem({
     userId: user.id,
     playlistId,
     songId,
