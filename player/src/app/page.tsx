@@ -3,13 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Play, Search, Bell, Music, BarChart3 } from "lucide-react";
-import { usePlayer, type Album } from "./player/PlayerContext";
+import { Search, Bell, Music, BarChart3 } from "lucide-react";
+import { type Album } from "./player/PlayerContext";
 
 export default function Home() {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
-  const { setCurrentSong, setCurrentAlbum } = usePlayer();
 
   useEffect(() => {
     fetch("/api/songs")
@@ -20,13 +19,6 @@ export default function Home() {
       })
       .catch(() => setLoading(false));
   }, []);
-
-  const startPlayingAlbum = (album: Album) => {
-    if (album.songs.length > 0) {
-      setCurrentAlbum(album);
-      setCurrentSong(album.songs[0]);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white pb-32">
@@ -120,14 +112,6 @@ export default function Home() {
                           <Music className="w-16 h-16 text-white/10" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 backdrop-blur-[2px] flex items-center justify-center">
-                        <button 
-                          onClick={(e) => { e.preventDefault(); startPlayingAlbum(album); }}
-                          className="w-20 h-20 bg-white text-black flex items-center justify-center translate-y-8 group-hover:translate-y-0 transition-all duration-500 shadow-2xl hover:scale-110 active:scale-95"
-                        >
-                          <Play className="w-9 h-9 fill-current ml-1" />
-                        </button>
-                      </div>
                     </div>
                   </Link>
                   <div className="px-2">
