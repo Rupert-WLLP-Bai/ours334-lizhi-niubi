@@ -15,7 +15,7 @@ type MeResponse = {
 export default function LoginPage() {
   const router = useRouter();
   const [nextUrl, setNextUrl] = useState("/");
-  const [email, setEmail] = useState("");
+  const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -56,7 +56,7 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
+          account,
           password,
         }),
       });
@@ -87,16 +87,16 @@ export default function LoginPage() {
         <h1 className="text-2xl font-righteous tracking-tight mb-2">
           登录 <span className="text-[#ff2d55]">LIZHI MUSIC</span>
         </h1>
-        <p className="text-sm text-white/40 mb-6">使用邮箱和密码登录，访问收藏与歌单数据。</p>
+        <p className="text-sm text-white/40 mb-6">使用账号（用户名或邮箱）和密码登录，访问收藏与歌单数据。</p>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <label className="block">
-            <span className="text-xs uppercase tracking-[0.15em] text-white/40">Email</span>
+            <span className="text-xs uppercase tracking-[0.15em] text-white/40">Account</span>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
+              type="text"
+              value={account}
+              onChange={(e) => setAccount(e.target.value)}
+              autoComplete="username"
               required
               className="mt-2 w-full px-3 py-2.5 bg-black border border-white/20 focus:border-[#ff2d55] outline-none transition-colors text-sm"
             />

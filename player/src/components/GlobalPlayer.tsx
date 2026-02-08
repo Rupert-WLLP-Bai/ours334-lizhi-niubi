@@ -132,11 +132,11 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   }, [authUser]);
 
   const openPlaylistPanel = useCallback(() => {
-    if (authUser) {
+    if (authUser && queueMode === "playlist") {
       fetchPlaylist();
     }
     setShowPlaylist(true);
-  }, [authUser, fetchPlaylist]);
+  }, [authUser, fetchPlaylist, queueMode]);
 
   const buildPlaylistQueueSongs = useCallback((items: PlaylistItem[], albums: Album[]): Song[] => {
     const songById = new Map<string, Song>();
@@ -537,6 +537,18 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
     }
   }, [allAlbums, currentAlbum, currentSong?.id, endPlaybackSession, isFullPlayer, router, setCurrentAlbum, setCurrentSong]);
 
+  const playFromAlbumQueue = useCallback((songId: string) => {
+    if (!currentAlbum) return;
+    const targetSong = currentAlbum.songs.find((song) => song.id === songId) || currentAlbum.songs[0];
+    if (!targetSong) return;
+    setQueueMode("album");
+    switchSong(targetSong);
+    if (!isFullPlayer) {
+      router.push(`/player/${encodeURIComponent(currentAlbum.name)}/${encodeURIComponent(targetSong.title)}`);
+    }
+    setShowPlaylist(false);
+  }, [currentAlbum, isFullPlayer, router, switchSong]);
+
   const playNext = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (!currentSong) return;
@@ -586,6 +598,10 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   const circumference = 2 * Math.PI * radius;
   const progress = currentTime / (duration || 1);
   const strokeDashoffset = circumference * (1 - progress);
+  const queuePanelMode: "album" | "playlist" =
+    queueMode === "playlist" && playlistQueueSongs.length > 0 ? "playlist" : "album";
+  const queuePanelSongs = queuePanelMode === "playlist" ? playlistQueueSongs : (currentAlbum?.songs || []);
+  const queuePanelTitle = queuePanelMode === "playlist" ? "待播清單 · 红心歌单" : "待播清單 · 当前专辑";
 
   return (
     <div className={`relative w-full bg-black text-white font-sans flex flex-col ${isFullPlayer ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
@@ -783,7 +799,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
             {/* Playlist Header */}
             <div className="p-8 border-b border-white/5">
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl font-bold font-righteous text-white/90">待播清單</h3>
+                <h3 className="text-2xl font-bold font-righteous text-white/90">{queuePanelTitle}</h3>
                 <button 
                   onClick={() => setShowPlaylist(false)}
                   className="p-2 hover:bg-white/5 transition-colors text-white/40 hover:text-white"
@@ -791,7 +807,15 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                   <ChevronDown className="w-6 h-6 rotate-[-90deg]" />
                 </button>
               </div>
-              {authUser ? (
+              {queuePanelMode === "album" ? (
+                <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-[#ff2d55] font-bold mb-1">当前专辑</div>
+                    <div className="text-sm font-bold truncate text-white">{currentAlbum?.name || "未选择专辑"}</div>
+                  </div>
+                  <div className="text-xs text-white/40 whitespace-nowrap">{queuePanelSongs.length} 首</div>
+                </div>
+              ) : authUser ? (
                 <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 gap-3">
                   <div className="min-w-0">
                     <div className="text-[10px] uppercase tracking-[0.2em] text-[#ff2d55] font-bold mb-1">当前用户</div>
@@ -809,22 +833,28 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
             {/* Song List */}
             <div className="flex-1 overflow-y-auto py-4 scrollbar-hide">
               <div className="px-4 space-y-1">
-                {playlistItems.length === 0 ? (
+                {queuePanelSongs.length === 0 ? (
                   <div className="p-8 text-center text-sm text-white/35 border border-dashed border-white/10">
                     暂无待播歌曲
                   </div>
                 ) : (
-                  playlistItems.map((item, index) => {
-                    const isCurrent = currentSong?.id === item.songId;
+                  queuePanelSongs.map((song, index) => {
+                    const isCurrent = currentSong?.id === song.id;
                     return (
                       <div
-                        key={`${item.songId}-${item.position}`}
+                        key={`${song.id}-${index}`}
                         className={`w-full flex items-center gap-4 p-4 transition-all group ${
                           isCurrent ? "bg-[#ff2d55]/10 border-l-2 border-[#ff2d55]" : "hover:bg-white/5 border-l-2 border-transparent"
                         }`}
                       >
                         <button
-                          onClick={() => playFromPlaylist(item.songId)}
+                          onClick={() => {
+                            if (queuePanelMode === "playlist") {
+                              playFromPlaylist(song.id);
+                              return;
+                            }
+                            playFromAlbumQueue(song.id);
+                          }}
                           className="w-full flex items-center gap-4 text-left"
                         >
                           <span className={`w-6 text-xs font-bold font-mono transition-colors ${isCurrent ? "text-[#ff2d55]" : "opacity-20 group-hover:opacity-40"}`}>
@@ -832,9 +862,9 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                           </span>
                           <div className="flex-1 min-w-0">
                             <div className={`font-bold truncate text-sm mb-0.5 ${isCurrent ? "text-[#ff2d55]" : "text-white/70 group-hover:text-white"}`}>
-                              {item.songTitle}
+                              {song.title}
                             </div>
-                            <div className="text-[10px] text-white/20 tracking-widest font-medium truncate">{item.albumName}</div>
+                            <div className="text-[10px] text-white/20 tracking-widest font-medium truncate">{song.album}</div>
                           </div>
                           {isCurrent && isPlaying && (
                             <div className="flex items-end gap-0.5 h-3">
@@ -844,13 +874,15 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                             </div>
                           )}
                         </button>
-                        <button
-                          onClick={() => removeSongFromPlaylist(item.songId)}
-                          className="p-1.5 text-white/30 hover:text-white"
-                          title="从清单移除"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {queuePanelMode === "playlist" && (
+                          <button
+                            onClick={() => removeSongFromPlaylist(song.id)}
+                            className="p-1.5 text-white/30 hover:text-white"
+                            title="从清单移除"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     );
                   })
@@ -860,7 +892,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
 
             <div className="p-8 border-t border-white/5 bg-black">
                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-white/20">
-                  <span>共 {playlistItems.length} 首歌曲</span>
+                  <span>共 {queuePanelSongs.length} 首歌曲</span>
                   <span>保持理智 相信未來</span>
                </div>
             </div>

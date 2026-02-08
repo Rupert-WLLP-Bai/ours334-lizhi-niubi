@@ -4,7 +4,7 @@ import {
   setAuthCookie,
   verifyPassword,
 } from "@/lib/auth";
-import { getUserByEmail } from "@/lib/userLibraryStore";
+import { getUserByAccount } from "@/lib/userLibraryStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,16 +26,19 @@ export async function POST(request: NextRequest) {
   }
 
   const data = (payload ?? {}) as Record<string, unknown>;
-  const email = readString(data.email, 320)?.toLowerCase() ?? null;
+  const account =
+    readString(data.account, 320)?.toLowerCase() ??
+    readString(data.email, 320)?.toLowerCase() ??
+    null;
   const password = readString(data.password, 200);
 
-  if (!email || !password) {
-    return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+  if (!account || !password) {
+    return NextResponse.json({ error: "Account and password are required" }, { status: 400 });
   }
 
-  const user = getUserByEmail(email);
+  const user = getUserByAccount(account);
   if (!user || !user.isActive || !verifyPassword(password, user.passwordHash)) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    return NextResponse.json({ error: "Invalid account or password" }, { status: 401 });
   }
 
   const session = createPersistedSession(user.id);

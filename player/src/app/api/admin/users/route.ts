@@ -4,7 +4,7 @@ import {
   getUserFromRawSessionToken,
   hashPassword,
 } from "@/lib/auth";
-import { createUser, getUserByEmail } from "@/lib/userLibraryStore";
+import { createUser, getUserByAccount } from "@/lib/userLibraryStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,22 +32,25 @@ export async function POST(request: NextRequest) {
   }
 
   const data = (payload ?? {}) as Record<string, unknown>;
-  const email = readString(data.email)?.toLowerCase() ?? null;
+  const account =
+    readString(data.account)?.toLowerCase() ??
+    readString(data.email)?.toLowerCase() ??
+    null;
   const password = readString(data.password, 200);
   const role = readString(data.role, 20) === "admin" ? "admin" : "user";
 
-  if (!email || !password) {
-    return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+  if (!account || !password) {
+    return NextResponse.json({ error: "Account and password are required" }, { status: 400 });
   }
   if (password.length < 4) {
     return NextResponse.json({ error: "Password must be at least 4 characters" }, { status: 400 });
   }
-  if (getUserByEmail(email)) {
+  if (getUserByAccount(account)) {
     return NextResponse.json({ error: "User already exists" }, { status: 409 });
   }
 
   const user = createUser({
-    email,
+    email: account,
     passwordHash: hashPassword(password),
     role,
   });

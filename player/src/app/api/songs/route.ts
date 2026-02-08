@@ -1,3 +1,5 @@
+import { createHash } from "crypto";
+import { NextRequest, NextResponse } from "next/server";
 import { ALBUMS_DIR } from "@/lib/albums";
 import {
   loadAlbumCatalogIndex,
@@ -8,6 +10,7 @@ import { isCloudAssetSource } from "@/lib/assetSource";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+const SONGS_CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=86400";
 
 export interface Song {
   id: string;
@@ -46,7 +49,21 @@ async function loadCatalogAlbums(): Promise<CatalogAlbum[]> {
   return scanAlbumsDirectory(ALBUMS_DIR);
 }
 
-export async function GET() {
+function createEtagFromObject(value: unknown): string {
+  const hash = createHash("sha1").update(JSON.stringify(value)).digest("base64url");
+  return `W/"${hash}"`;
+}
+
+function requestMatchesEtag(request: NextRequest, etag: string): boolean {
+  const ifNoneMatch = request.headers.get("if-none-match");
+  if (!ifNoneMatch) return false;
+  return ifNoneMatch
+    .split(",")
+    .map(token => token.trim())
+    .some(token => token === etag || token === "*");
+}
+
+export async function GET(request: NextRequest) {
   try {
     const catalogAlbums = await loadCatalogAlbums();
     const albums: Album[] = catalogAlbums.map(catalogAlbum => {
@@ -67,14 +84,31 @@ export async function GET() {
       };
     });
     const allSongs = albums.flatMap(album => album.songs);
-
-    return Response.json({
+    const payload = {
       albums,
       songs: allSongs,
+    };
+    const etag = createEtagFromObject(payload);
+
+    if (requestMatchesEtag(request, etag)) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          "Cache-Control": SONGS_CACHE_CONTROL,
+          ETag: etag,
+        },
+      });
+    }
+
+    return NextResponse.json(payload, {
+      headers: {
+        "Cache-Control": SONGS_CACHE_CONTROL,
+        ETag: etag,
+      },
     });
   } catch (error) {
     console.error("Error loading songs catalog:", error);
-    return Response.json(
+    return NextResponse.json(
       { error: "Failed to load songs catalog" },
       { status: 500 }
     );

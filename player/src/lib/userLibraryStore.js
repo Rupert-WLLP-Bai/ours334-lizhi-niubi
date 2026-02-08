@@ -5,9 +5,9 @@ import { getPlaybackLogDbPath } from "@/lib/playbackLogs";
 const DEFAULT_PLAYLIST_ID = "later";
 const USER_ROLES = new Set(["admin", "user"]);
 
-function normalizeEmail(email) {
-  if (typeof email !== "string") return "";
-  return email.trim().toLowerCase();
+function normalizeAccount(account) {
+  if (typeof account !== "string") return "";
+  return account.trim().toLowerCase();
 }
 
 function toSafeInt(value) {
@@ -129,21 +129,26 @@ export function getUserById(userId) {
 }
 
 export function getUserByEmail(email) {
-  const normalizedEmail = normalizeEmail(email);
-  if (!normalizedEmail) return null;
+  return getUserByAccount(email);
+}
+
+export function getUserByAccount(account) {
+  const normalizedAccount = normalizeAccount(account);
+  if (!normalizedAccount) return null;
   const db = getDb();
   const row = db.prepare(`
     SELECT id, email, password_hash, role, is_active, created_at, updated_at
     FROM users
     WHERE email = ?;
-  `).get(normalizedEmail);
+  `).get(normalizedAccount);
   return mapUser(row);
 }
 
 export function createUser({ email, passwordHash, role = "user" }) {
-  const normalizedEmail = normalizeEmail(email);
-  if (!normalizedEmail) {
-    throw new Error("Email is required");
+  const account = typeof email === "string" ? email : "";
+  const normalizedAccount = normalizeAccount(account);
+  if (!normalizedAccount) {
+    throw new Error("Account is required");
   }
   if (typeof passwordHash !== "string" || !passwordHash) {
     throw new Error("Password hash is required");
@@ -154,12 +159,16 @@ export function createUser({ email, passwordHash, role = "user" }) {
   const result = db.prepare(`
     INSERT INTO users (email, password_hash, role, is_active, created_at, updated_at)
     VALUES (?, ?, ?, 1, ?, ?);
-  `).run(normalizedEmail, passwordHash, normalizedRole, now, now);
+  `).run(normalizedAccount, passwordHash, normalizedRole, now, now);
   return getUserById(result.lastInsertRowid);
 }
 
 export function upsertUserByEmail({ email, passwordHash, role = "user" }) {
-  const existing = getUserByEmail(email);
+  return upsertUserByAccount({ account: email, passwordHash, role });
+}
+
+export function upsertUserByAccount({ account, passwordHash, role = "user" }) {
+  const existing = getUserByAccount(account);
   if (existing) {
     const db = getDb();
     const now = nowIso();
@@ -171,7 +180,7 @@ export function upsertUserByEmail({ email, passwordHash, role = "user" }) {
     `).run(passwordHash, normalizedRole, now, existing.id);
     return getUserById(existing.id);
   }
-  return createUser({ email, passwordHash, role });
+  return createUser({ email: account, passwordHash, role });
 }
 
 export function createAuthSession({ userId, tokenHash, expiresAt }) {

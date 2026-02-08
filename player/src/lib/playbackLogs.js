@@ -81,6 +81,16 @@ function isReadonlySqliteError(error) {
   );
 }
 
+function isColumnIndexOutOfRangeError(error) {
+  if (!error || typeof error !== "object") return false;
+  const message = String(error.message || "").toLowerCase();
+  const errstr = String(error.errstr || "").toLowerCase();
+  return (
+    message.includes("column index out of range") ||
+    errstr.includes("column index out of range")
+  );
+}
+
 function openDbAtPath(dbPath) {
   const dir = path.dirname(dbPath);
   fs.mkdirSync(dir, { recursive: true });
@@ -174,7 +184,8 @@ function initializeDb(preferFallback = false) {
  * @returns {DatabaseSync}
  */
 function getDb() {
-  if (!globalThis.__playbackDb) {
+  if (!globalThis.__playbackDb || !globalThis.__playbackInsertStmt) {
+    resetDbState();
     initializeDb();
   }
 
@@ -213,14 +224,23 @@ export function insertPlaybackLog(entry) {
   try {
     globalThis.__playbackInsertStmt.run(...values);
   } catch (error) {
-    if (!isReadonlySqliteError(error)) {
-      throw error;
+    if (isReadonlySqliteError(error)) {
+      // 当默认库只读时，切换到可写的 fallback 路径再重试一次
+      resetDbState();
+      initializeDb(true);
+      globalThis.__playbackInsertStmt.run(...values);
+      return;
     }
 
-    // 当默认库只读时，切换到可写的 fallback 路径再重试一次
-    resetDbState();
-    initializeDb(true);
-    globalThis.__playbackInsertStmt.run(...values);
+    if (isColumnIndexOutOfRangeError(error)) {
+      // 开发模式热更新后可能残留旧的 prepared statement，重建后再试一次
+      resetDbState();
+      initializeDb();
+      globalThis.__playbackInsertStmt.run(...values);
+      return;
+    }
+
+    throw error;
   }
 }
 
