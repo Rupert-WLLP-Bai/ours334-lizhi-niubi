@@ -120,7 +120,7 @@ export const Lyrics: React.FC<LyricsProps> = ({
         }}
       >
         <div className={styles.lyricsWrapper}>
-          <div className="h-[30vh] w-full flex-shrink-0 pointer-events-none" />
+          <div className="h-[24vh] md:h-[30vh] w-full flex-shrink-0 pointer-events-none" />
           {lyrics.map((line, index) => (
             <div
               key={`${line.time}-${index}`}
@@ -135,7 +135,7 @@ export const Lyrics: React.FC<LyricsProps> = ({
               <span className={styles.lyricText}>{line.text}</span>
             </div>
           ))}
-          <div className="h-[40vh] w-full flex-shrink-0 pointer-events-none" />
+          <div className="h-[30vh] md:h-[40vh] w-full flex-shrink-0 pointer-events-none" />
         </div>
       </div>
 

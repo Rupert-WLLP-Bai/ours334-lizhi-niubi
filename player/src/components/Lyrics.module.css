@@ -120,3 +120,25 @@
 .seekButton:active {
   transform: scale(0.9);
 }
+
+@media (max-width: 768px) {
+  .lyricsWrapper {
+    padding: 12px 0;
+  }
+
+  .lyricLine {
+    padding: 8px 18px;
+    margin: 4px 0;
+    min-height: 42px;
+    border-radius: 16px;
+  }
+
+  .lyricText {
+    font-size: 16px;
+    line-height: 1.32;
+  }
+
+  .lyricLine.active .lyricText {
+    font-size: 20px;
+  }
+}
