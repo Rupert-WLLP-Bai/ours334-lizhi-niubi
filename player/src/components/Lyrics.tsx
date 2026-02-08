@@ -130,7 +130,6 @@ export const Lyrics: React.FC<LyricsProps> = ({
               } ${index < activeIndex ? styles.past : ''} ${
                 index === scrolledLineIndex ? styles.scrolled : ''
               }`}
-              onClick={(e) => e.stopPropagation()}
             >
               <span className={styles.lyricText}>{line.text}</span>
             </div>

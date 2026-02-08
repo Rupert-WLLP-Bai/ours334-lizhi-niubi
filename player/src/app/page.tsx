@@ -29,6 +29,10 @@ export default function Home() {
   }, []);
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm("确认退出登录？");
+      if (!confirmed) return;
+    }
     await fetch("/api/auth/logout", {
       method: "POST",
     }).catch(() => null);
@@ -40,11 +44,11 @@ export default function Home() {
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[500px] bg-gradient-to-b from-[#ff2d55]/10 to-transparent pointer-events-none -z-10 blur-3xl opacity-50" />
 
       <header className="sticky top-0 z-50 backdrop-blur-md bg-black/40 border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-righteous tracking-tighter text-white">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+          <h1 className="text-lg md:text-2xl font-righteous tracking-tighter text-white">
             保持理智 <span className="text-[#ff2d55]">相信未來</span>
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 md:gap-3">
             <Link
               href="/stats"
               className="p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"
@@ -53,27 +57,27 @@ export default function Home() {
             >
               <BarChart3 className="w-5 h-5" />
             </Link>
-            <button className="p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"><Search className="w-5 h-5" /></button>
-            <button className="p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"><Bell className="w-5 h-5" /></button>
+            <button className="hidden sm:inline-flex p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"><Search className="w-5 h-5" /></button>
+            <button className="hidden sm:inline-flex p-2 rounded-full hover:bg-white/5 transition-colors text-white/70 hover:text-white"><Bell className="w-5 h-5" /></button>
             {authUser ? (
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-white/15 text-white/70 hover:text-white hover:border-white/30 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-white/60 hover:text-white transition-colors"
                 title={`已登录：${authUser.email}`}
               >
                 <LogOut className="w-3.5 h-3.5" />
-                退出
+                <span className="hidden sm:inline">退出</span>
               </button>
             ) : (
               <Link
                 href="/auth/login"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-white/15 text-white/70 hover:text-white hover:border-white/30 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs text-white/60 hover:text-white transition-colors"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                登录
+                <span className="hidden sm:inline">登录</span>
               </Link>
             )}
-            <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center cursor-pointer hover:scale-105 transition-transform border-2 border-white/10 ml-2">
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden flex items-center justify-center cursor-pointer hover:scale-105 transition-transform border-2 border-white/10 ml-1 md:ml-2">
               <Image src="/lizhi-avatar.png" alt="Lizhi Avatar" width={36} height={36} unoptimized className="object-cover" />
             </div>
           </div>

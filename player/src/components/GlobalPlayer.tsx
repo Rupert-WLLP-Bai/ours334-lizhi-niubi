@@ -17,9 +17,7 @@ import {
   Repeat1,
   Shuffle,
   Music,
-  Plus,
   Trash2,
-  LogIn,
 } from "lucide-react";
 import { usePlayer, type Song, type Album } from "@/app/player/PlayerContext";
 import { formatTime } from "@/lib/lyrics";
@@ -78,6 +76,9 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   const [authChecked, setAuthChecked] = useState(false);
   const [favoriteSongIds, setFavoriteSongIds] = useState<Set<string>>(new Set());
   const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>([]);
+  const [allAlbums, setAllAlbums] = useState<Album[]>([]);
+  const [queueMode, setQueueMode] = useState<"album" | "playlist">("album");
+  const [playlistQueueSongs, setPlaylistQueueSongs] = useState<Song[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
   const activePlaybackRef = useRef<ActivePlaybackSession | null>(null);
   const previousSongIdRef = useRef<string | null>(null);
@@ -124,13 +125,25 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   }, [authUser]);
 
   const openPlaylistPanel = useCallback(() => {
-    if (!authUser) {
-      redirectToLogin();
-      return;
+    if (authUser) {
+      fetchPlaylist();
     }
-    fetchPlaylist();
     setShowPlaylist(true);
-  }, [authUser, fetchPlaylist, redirectToLogin]);
+  }, [authUser, fetchPlaylist]);
+
+  const buildPlaylistQueueSongs = useCallback((items: PlaylistItem[], albums: Album[]): Song[] => {
+    const songById = new Map<string, Song>();
+    albums.forEach((album) => {
+      album.songs.forEach((song) => {
+        if (!songById.has(song.id)) {
+          songById.set(song.id, song);
+        }
+      });
+    });
+    return items
+      .map((item) => songById.get(item.songId))
+      .filter((song): song is Song => Boolean(song));
+  }, []);
 
   const toggleFavorite = useCallback(async () => {
     if (!currentSong || !currentAlbum) return;
@@ -147,7 +160,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
     });
 
     try {
-      const response = await fetch("/api/library/favorites", {
+      const favoriteResponse = await fetch("/api/library/favorites", {
         method: nextFavorite ? "POST" : "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -162,9 +175,31 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
               }
         ),
       });
-      if (!response.ok) {
+      if (!favoriteResponse.ok) {
         throw new Error("favorite request failed");
       }
+
+      const playlistResponse = await fetch("/api/library/playlist/items", {
+        method: nextFavorite ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          nextFavorite
+            ? {
+                playlistId: "later",
+                songId: currentSong.id,
+                songTitle: currentSong.title,
+                albumName: currentAlbum.name,
+              }
+            : {
+                playlistId: "later",
+                songId: currentSong.id,
+              }
+        ),
+      });
+      if (!playlistResponse.ok) {
+        throw new Error("playlist request failed");
+      }
+      fetchPlaylist();
     } catch {
       setFavoriteSongIds((prev) => {
         const next = new Set(prev);
@@ -173,32 +208,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
         return next;
       });
     }
-  }, [authUser, currentAlbum, currentSong, favoriteSongIds, redirectToLogin]);
-
-  const addCurrentSongToPlaylist = useCallback(async () => {
-    if (!currentSong || !currentAlbum) return;
-    if (!authUser) {
-      redirectToLogin();
-      return;
-    }
-    try {
-      const response = await fetch("/api/library/playlist/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          playlistId: "later",
-          songId: currentSong.id,
-          songTitle: currentSong.title,
-          albumName: currentAlbum.name,
-        }),
-      });
-      if (!response.ok) return;
-      await fetchPlaylist();
-      setShowPlaylist(true);
-    } catch {
-      // ignore add failures
-    }
-  }, [authUser, currentAlbum, currentSong, fetchPlaylist, redirectToLogin]);
+  }, [authUser, currentAlbum, currentSong, favoriteSongIds, fetchPlaylist, redirectToLogin]);
 
   const removeSongFromPlaylist = useCallback(async (songId: string) => {
     if (!authUser || !songId) return;
@@ -217,6 +227,23 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
       // ignore remove failures
     }
   }, [authUser, fetchPlaylist]);
+
+  const playFromPlaylist = useCallback((songId: string) => {
+    if (!songId) return;
+    const queue = buildPlaylistQueueSongs(playlistItems, allAlbums);
+    if (queue.length === 0) return;
+    const targetSong = queue.find((song) => song.id === songId) || queue[0];
+    if (!targetSong) return;
+    const albumForSong = allAlbums.find((album) => album.name === targetSong.album) || currentAlbum;
+    if (albumForSong) {
+      setCurrentAlbum(albumForSong);
+    }
+    setPlaylistQueueSongs(queue);
+    setQueueMode("playlist");
+    setCurrentSong(targetSong);
+    router.push(`/player/${encodeURIComponent(targetSong.album)}/${encodeURIComponent(targetSong.title)}`);
+    setShowPlaylist(false);
+  }, [allAlbums, buildPlaylistQueueSongs, currentAlbum, playlistItems, router, setCurrentAlbum, setCurrentSong]);
 
   const sendPlaybackLog = useCallback((
     event: PlaybackEvent,
@@ -332,6 +359,28 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
     fetchPlaylist();
   }, [authChecked, fetchFavorites, fetchPlaylist]);
 
+  useEffect(() => {
+    let active = true;
+    fetch("/api/songs", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active) return;
+        setAllAlbums(data.albums || []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setAllAlbums([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (queueMode !== "playlist") return;
+    setPlaylistQueueSongs(buildPlaylistQueueSongs(playlistItems, allAlbums));
+  }, [allAlbums, buildPlaylistQueueSongs, playlistItems, queueMode]);
+
   // 注册跳转方法
   useEffect(() => {
     setSeekToFn((time: number) => {
@@ -362,19 +411,30 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
       }
     })();
 
-    if (currentSong?.title === songTitle && currentAlbum?.name === albumName) return;
+    if (currentSong?.title === songTitle && currentAlbum?.name === albumName && queueMode === "album") return;
 
-    fetch("/api/songs")
+    const hydrateFromAlbums = (albums: Album[]) => {
+      const foundAlbum = (albums || []).find((a: Album) => a.name === albumName);
+      if (!foundAlbum) return;
+      const foundSong = foundAlbum.songs.find((s: Song) => s.title === songTitle);
+      setCurrentAlbum(foundAlbum);
+      setCurrentSong(foundSong || null);
+      setQueueMode("album");
+    };
+
+    if (allAlbums.length > 0) {
+      hydrateFromAlbums(allAlbums);
+      return;
+    }
+
+    fetch("/api/songs", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        const foundAlbum = (data.albums || []).find((a: Album) => a.name === albumName);
-        if (foundAlbum) {
-          setCurrentAlbum(foundAlbum);
-          const foundSong = foundAlbum.songs.find((s: Song) => s.title === songTitle);
-          setCurrentSong(foundSong || null);
-        }
+        const albums = data.albums || [];
+        setAllAlbums(albums);
+        hydrateFromAlbums(albums);
       });
-  }, [params.album, params.song, currentSong?.title, currentAlbum?.name, setCurrentAlbum, setCurrentSong]);
+  }, [allAlbums, params.album, params.song, currentSong?.title, currentAlbum?.name, queueMode, setCurrentAlbum, setCurrentSong]);
 
   useEffect(() => {
     const currentSongId = currentSong?.id ?? null;
@@ -426,44 +486,61 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   };
 
   const switchSong = useCallback((newSong: Song) => {
-    if (!newSong || !currentAlbum) return;
+    if (!newSong) return;
     if (currentSong?.id !== newSong.id) {
       endPlaybackSession("song_change");
     }
+    const albumForSong = allAlbums.find((album) => album.name === newSong.album) || currentAlbum;
+    if (albumForSong) {
+      setCurrentAlbum(albumForSong);
+    }
     setCurrentSong(newSong);
     if (isFullPlayer) {
-      router.push(`/player/${encodeURIComponent(currentAlbum.name)}/${encodeURIComponent(newSong.title)}`);
+      const routeAlbumName = albumForSong?.name || newSong.album;
+      router.push(`/player/${encodeURIComponent(routeAlbumName)}/${encodeURIComponent(newSong.title)}`);
     }
-  }, [currentAlbum, currentSong?.id, endPlaybackSession, isFullPlayer, router, setCurrentSong]);
+  }, [allAlbums, currentAlbum, currentSong?.id, endPlaybackSession, isFullPlayer, router, setCurrentAlbum, setCurrentSong]);
 
   const playNext = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (!currentAlbum || !currentSong) return;
+    if (!currentSong) return;
+    const activeQueue = queueMode === "playlist" && playlistQueueSongs.length > 0
+      ? playlistQueueSongs
+      : (currentAlbum?.songs || []);
+    if (activeQueue.length === 0) return;
     
     let nextSong: Song | undefined;
     if (playMode === "shuffle") {
-      const randomIndex = Math.floor(Math.random() * currentAlbum.songs.length);
-      nextSong = currentAlbum.songs[randomIndex];
+      const randomIndex = Math.floor(Math.random() * activeQueue.length);
+      nextSong = activeQueue[randomIndex];
     } else {
-      const currentIndex = currentAlbum.songs.findIndex((s: Song) => s.title === currentSong.title);
-      if (currentIndex < currentAlbum.songs.length - 1) {
-        nextSong = currentAlbum.songs[currentIndex + 1];
+      const currentIndex = activeQueue.findIndex((s: Song) => s.id === currentSong.id);
+      if (currentIndex >= 0 && currentIndex < activeQueue.length - 1) {
+        nextSong = activeQueue[currentIndex + 1];
       } else if (playMode === "list") {
-        nextSong = currentAlbum.songs[0];
+        nextSong = activeQueue[0];
+      } else if (currentIndex < 0) {
+        nextSong = activeQueue[0];
       }
     }
     if (nextSong) switchSong(nextSong);
-  }, [currentAlbum, currentSong, playMode, switchSong]);
+  }, [currentAlbum?.songs, currentSong, playMode, playlistQueueSongs, queueMode, switchSong]);
 
   const playPrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (!currentAlbum || !currentSong) return;
-    const currentIndex = currentAlbum.songs.findIndex((s: Song) => s.title === currentSong.title);
+    if (!currentSong) return;
+    const activeQueue = queueMode === "playlist" && playlistQueueSongs.length > 0
+      ? playlistQueueSongs
+      : (currentAlbum?.songs || []);
+    if (activeQueue.length === 0) return;
+    const currentIndex = activeQueue.findIndex((s: Song) => s.id === currentSong.id);
     let prevSong: Song | undefined;
     if (currentIndex > 0) {
-      prevSong = currentAlbum.songs[currentIndex - 1];
+      prevSong = activeQueue[currentIndex - 1];
     } else if (playMode === "list") {
-      prevSong = currentAlbum.songs[currentAlbum.songs.length - 1];
+      prevSong = activeQueue[activeQueue.length - 1];
+    } else if (currentIndex < 0) {
+      prevSong = activeQueue[0];
     }
     if (prevSong) switchSong(prevSong);
   };
@@ -602,13 +679,6 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center justify-end gap-4 flex-1">
                   <button className="hidden md:block p-2 text-white/20 hover:text-white"><Volume2 className="w-6 h-6" /></button>
                   <button
-                    onClick={addCurrentSongToPlaylist}
-                    className="p-2 text-white/30 hover:text-white"
-                    title={authUser ? "加入稍后播放" : "登录后加入稍后播放"}
-                  >
-                    <Plus className="w-6 h-6" />
-                  </button>
-                  <button
                     onClick={openPlaylistPanel}
                     className="p-2 text-white/30 hover:text-white"
                     title={authUser ? "打开待播清单" : "登录后查看待播清单"}
@@ -687,21 +757,12 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                     <div className="text-[10px] uppercase tracking-[0.2em] text-[#ff2d55] font-bold mb-1">当前用户</div>
                     <div className="text-sm font-bold truncate text-white">{authUser.email}</div>
                   </div>
-                  <button
-                    onClick={addCurrentSongToPlaylist}
-                    className="px-3 py-1.5 border border-white/15 text-xs text-white/70 hover:text-white hover:border-white/30 transition-colors"
-                  >
-                    加入当前歌曲
-                  </button>
                 </div>
               ) : (
-                <button
-                  onClick={redirectToLogin}
-                  className="w-full flex items-center justify-center gap-2 p-4 border border-white/15 text-sm text-white/70 hover:text-white hover:border-white/30 transition-colors"
-                >
-                  <LogIn className="w-4 h-4" />
-                  登录后可使用收藏与待播清单
-                </button>
+                <div className="w-full flex items-center justify-center gap-2 p-4 border border-white/10 bg-white/[0.02] text-sm text-white/50">
+                  <ListMusic className="w-4 h-4" />
+                  歌单（登录后可用）
+                </div>
               )}
             </div>
 
@@ -723,10 +784,7 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
                         }`}
                       >
                         <button
-                          onClick={() => {
-                            router.push(`/player/${encodeURIComponent(item.albumName)}/${encodeURIComponent(item.songTitle)}`);
-                            setShowPlaylist(false);
-                          }}
+                          onClick={() => playFromPlaylist(item.songId)}
                           className="w-full flex items-center gap-4 text-left"
                         >
                           <span className={`w-6 text-xs font-bold font-mono transition-colors ${isCurrent ? "text-[#ff2d55]" : "opacity-20 group-hover:opacity-40"}`}>
