@@ -48,9 +48,15 @@ function ensureSchema(db) {
       duration_seconds REAL,
       pathname TEXT NOT NULL DEFAULT '',
       user_agent TEXT NOT NULL DEFAULT '',
+      user_id INTEGER,
       created_at TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now'))
     );
   `);
+  const columns = db.prepare(`PRAGMA table_info(playback_logs);`).all();
+  const hasUserId = columns.some((column) => String(column.name) === "user_id");
+  if (!hasUserId) {
+    db.exec(`ALTER TABLE playback_logs ADD COLUMN user_id INTEGER;`);
+  }
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_playback_logs_song_created_at
     ON playback_logs (song_id, created_at);
@@ -58,6 +64,10 @@ function ensureSchema(db) {
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_playback_logs_event_created_at
     ON playback_logs (event, created_at);
+  `);
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_playback_logs_user_created_at
+    ON playback_logs (user_id, created_at);
   `);
 }
 
@@ -95,9 +105,10 @@ function openDbAtPath(dbPath) {
         played_seconds,
         duration_seconds,
         pathname,
-        user_agent
+        user_agent,
+        user_id
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `),
   };
 }
@@ -156,6 +167,7 @@ function initializeDb(preferFallback = false) {
  * @property {number | null | undefined} durationSeconds
  * @property {string} pathname
  * @property {string} userAgent
+ * @property {number | null | undefined} [userId]
  */
 
 /**
@@ -195,6 +207,7 @@ export function insertPlaybackLog(entry) {
     normalizeNumber(entry.durationSeconds),
     entry.pathname,
     entry.userAgent,
+    normalizeNumber(entry.userId),
   ];
 
   try {
@@ -224,8 +237,16 @@ function toSafeNumber(value) {
   return num;
 }
 
-export function getPlaybackStats() {
+export function getPlaybackStats(options = {}) {
   const db = getDb();
+  const normalizedUserId = normalizeNumber(options.userId);
+  const includeAnonymous = options.includeAnonymous === true;
+  const whereClause = normalizedUserId === null
+    ? includeAnonymous
+      ? "1=1"
+      : "user_id IS NOT NULL"
+    : "user_id = ?";
+  const whereParams = normalizedUserId === null ? [] : [normalizedUserId];
 
   const summaryRaw = db.prepare(`
     SELECT
@@ -234,8 +255,9 @@ export function getPlaybackStats() {
       COALESCE(SUM(CASE WHEN event IN (${END_EVENTS}) AND played_seconds >= ? THEN 1 ELSE 0 END), 0) AS play_count,
       COALESCE(COUNT(DISTINCT CASE WHEN event IN (${END_EVENTS}) THEN song_id END), 0) AS song_count,
       COALESCE(COUNT(DISTINCT CASE WHEN event IN (${END_EVENTS}) THEN album_name END), 0) AS album_count
-    FROM playback_logs;
-  `).get(QUALIFIED_PLAY_SECONDS);
+    FROM playback_logs
+    WHERE ${whereClause};
+  `).get(QUALIFIED_PLAY_SECONDS, ...whereParams);
 
   const songsRaw = db.prepare(`
     SELECT
@@ -248,10 +270,11 @@ export function getPlaybackStats() {
       AVG(CASE WHEN event IN (${END_EVENTS}) THEN played_seconds ELSE NULL END) AS avg_session_seconds,
       MAX(created_at) AS last_played_at
     FROM playback_logs
+    WHERE ${whereClause}
     GROUP BY song_id, song_title, album_name
     HAVING sessions > 0
     ORDER BY total_played_seconds DESC, play_count DESC, last_played_at DESC;
-  `).all(QUALIFIED_PLAY_SECONDS);
+  `).all(QUALIFIED_PLAY_SECONDS, ...whereParams);
 
   const albumsRaw = db.prepare(`
     SELECT
@@ -262,10 +285,11 @@ export function getPlaybackStats() {
       COUNT(DISTINCT CASE WHEN event IN (${END_EVENTS}) THEN song_id END) AS song_count,
       MAX(created_at) AS last_played_at
     FROM playback_logs
+    WHERE ${whereClause}
     GROUP BY album_name
     HAVING sessions > 0
     ORDER BY total_played_seconds DESC, play_count DESC, last_played_at DESC;
-  `).all(QUALIFIED_PLAY_SECONDS);
+  `).all(QUALIFIED_PLAY_SECONDS, ...whereParams);
 
   const summary = {
     totalPlayedSeconds: toSafeNumber(summaryRaw.total_played_seconds),

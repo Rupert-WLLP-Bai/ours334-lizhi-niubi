@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:album-index": "node scripts/build-album-index.mjs",
+    "migrate:logs:user": "node scripts/migrate-logs-to-user.mjs",
     "start": "next start",
     "lint": "eslint",
     "upload:albums:s3": "bash scripts/upload-albums-s3.sh",

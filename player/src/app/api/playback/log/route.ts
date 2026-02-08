@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  getSessionTokenFromRequest,
+  getUserFromRawSessionToken,
+} from "@/lib/auth";
 import { getPlaybackLogDbPath, insertPlaybackLog } from "@/lib/playbackLogs";
 
 export const runtime = "nodejs";
@@ -21,6 +25,12 @@ function readNumber(value: unknown): number | null {
 }
 
 export async function POST(request: NextRequest) {
+  const token = getSessionTokenFromRequest(request);
+  const user = getUserFromRawSessionToken(token);
+  if (!user) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   let payload: unknown;
   try {
     payload = await request.json();
@@ -56,6 +66,7 @@ export async function POST(request: NextRequest) {
       durationSeconds: durationSeconds === null ? null : Math.max(0, durationSeconds),
       pathname,
       userAgent: request.headers.get("user-agent") ?? "",
+      userId: user.id,
     });
     return NextResponse.json({ ok: true });
   } catch (error) {
