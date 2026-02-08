@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-07T15:44:28.026Z",
+  "generatedAt": "2026-02-08T05:31:02.168Z",
   "albumCount": 14,
   "songCount": 166,
   "albums": [
@@ -323,7 +323,7 @@
           "album": "看见  李志2015巡回演唱会",
           "audioBaseName": "热河 (2015 Live 看见版)",
           "audioFileName": "热河 (2015 Live 看见版).flac",
-          "hasLyric": false
+          "hasLyric": true
         },
         {
           "id": "看见-李志2015巡回演唱会-董卓瑶-(2015-live-看见版)",

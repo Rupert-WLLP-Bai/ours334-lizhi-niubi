@@ -12,7 +12,6 @@ lizhi-lyrics/albums/**/*.aiff
 lizhi-lyrics/albums/**/*:Zone.Identifier
 node_modules/
 .next/
-public/
 .env
 .env.local
 .env.development.local
@@ -31,4 +30,3 @@ player/data/
 .claude
 .gemini
 .codex
-b96dee7497a307df54d9c4b41dee08a6.jpg
