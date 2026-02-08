@@ -116,7 +116,10 @@ export const Lyrics: React.FC<LyricsProps> = ({
         onScroll={handleScroll}
         data-testid="lyrics-scroll-container"
         onClick={() => {
-          if (onBackToCover) onBackToCover();
+          if (!onBackToCover) return;
+          // Ignore tap-to-back while user is scrolling / selecting a seek line.
+          if (isUserScrolling || scrolledLineIndex !== null) return;
+          onBackToCover();
         }}
       >
         <div className={styles.lyricsWrapper}>

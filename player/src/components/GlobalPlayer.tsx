@@ -391,10 +391,17 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   // 注册跳转方法
   useEffect(() => {
     setSeekToFn((time: number) => {
-      if (audioRef.current) {
-        audioRef.current.currentTime = time;
-        setCurrentTime(time);
-      }
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      const safeTime = Math.max(0, time);
+      const durationNow = Number.isFinite(audio.duration) && audio.duration > 0
+        ? audio.duration
+        : null;
+      const targetTime = durationNow === null ? safeTime : Math.min(safeTime, durationNow);
+
+      audio.currentTime = targetTime;
+      setCurrentTime(targetTime);
     });
   }, [setSeekToFn, setCurrentTime]);
 
@@ -514,12 +521,29 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
 
   const handleSeekEnd = (time: number) => {
     if (audioRef.current) {
-      const targetTime = Math.min(Math.max(0, time), duration);
+      const durationNow =
+        Number.isFinite(audioRef.current.duration) && audioRef.current.duration > 0
+          ? audioRef.current.duration
+          : Number.isFinite(duration) && duration > 0
+            ? duration
+            : null;
+      const targetTime = durationNow === null
+        ? Math.max(0, time)
+        : Math.min(Math.max(0, time), durationNow);
       audioRef.current.currentTime = targetTime;
       setCurrentTime(targetTime);
     }
     setIsSeeking(false);
   };
+
+  const syncDurationFromAudio = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    if (Math.abs(audio.duration - duration) > 0.25) {
+      setDuration(audio.duration);
+    }
+  }, [duration, setDuration]);
 
   const switchSong = useCallback((newSong: Song) => {
     if (!newSong) return;
@@ -596,7 +620,12 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
   // 圆环进度
   const radius = 18;
   const circumference = 2 * Math.PI * radius;
-  const progress = currentTime / (duration || 1);
+  const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
+  const safeCurrentTime = Math.max(
+    0,
+    safeDuration > 0 ? Math.min(currentTime, safeDuration) : currentTime
+  );
+  const progress = safeDuration > 0 ? Math.min(1, safeCurrentTime / safeDuration) : 0;
   const strokeDashoffset = circumference * (1 - progress);
   const queuePanelMode: "album" | "playlist" =
     queueMode === "playlist" && playlistQueueSongs.length > 0 ? "playlist" : "album";
@@ -625,8 +654,23 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
         ref={audioRef}
         key={currentSong?.audioPath}
         src={currentSong?.audioPath}
-        onTimeUpdate={() => !isSeeking && audioRef.current && setCurrentTime(audioRef.current.currentTime)}
-        onLoadedMetadata={() => audioRef.current && setDuration(audioRef.current.duration)}
+        onTimeUpdate={() => {
+          const audio = audioRef.current;
+          if (!audio) return;
+          syncDurationFromAudio();
+          if (!isSeeking) {
+            setCurrentTime(audio.currentTime);
+          }
+        }}
+        onLoadedMetadata={() => {
+          syncDurationFromAudio();
+          const audio = audioRef.current;
+          if (!audio) return;
+          if (!isSeeking) {
+            setCurrentTime(audio.currentTime);
+          }
+        }}
+        onDurationChange={syncDurationFromAudio}
         onEnded={() => {
           endPlaybackSession("ended");
           if (playMode === "single") {
@@ -695,18 +739,18 @@ export function GlobalPlayer({ children }: { children: React.ReactNode }) {
               <div className="mb-4">
                 <input
                   type="range" min={0} max={duration || 100} step={0.1}
-                  value={currentTime}
+                  value={safeDuration > 0 ? safeCurrentTime : 0}
                   onMouseDown={() => setIsSeeking(true)}
                   onTouchStart={() => setIsSeeking(true)}
                   onChange={(e) => setCurrentTime(parseFloat(e.target.value))}
                   onMouseUp={(e) => handleSeekEnd(parseFloat((e.target as HTMLInputElement).value))}
                   onTouchEnd={(e) => handleSeekEnd(parseFloat((e.target as HTMLInputElement).value))}
                   className="w-full h-1 bg-white/10 appearance-none cursor-pointer"
-                  style={{ background: `linear-gradient(to right, white ${(currentTime / (duration || 1)) * 100}%, rgba(255,255,255,0.1) ${(currentTime / (duration || 1)) * 100}%)` }}
+                  style={{ background: `linear-gradient(to right, white ${progress * 100}%, rgba(255,255,255,0.1) ${progress * 100}%)` }}
                 />
                 <div className="flex justify-between text-[10px] font-bold text-white/20 mt-2 uppercase tracking-widest">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
+                  <span>{formatTime(safeCurrentTime)}</span>
+                  <span>{formatTime(safeDuration)}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
