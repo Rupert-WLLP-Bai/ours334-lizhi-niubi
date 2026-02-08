@@ -78,3 +78,55 @@
 ### Verified
 - `npm run test:run` (16 tests passed)
 - `npm run build` (pass)
+
+## 2026-02-08
+
+### Added
+- Added lightweight auth pages and APIs:
+  - `src/app/auth/login/page.tsx` (public login page, no public register)
+  - `src/app/api/auth/login/route.ts`
+  - `src/app/api/auth/logout/route.ts`
+  - `src/app/api/auth/me/route.ts`
+- Added admin-only user creation API:
+  - `src/app/api/admin/users/route.ts`
+- Added user library APIs:
+  - `src/app/api/library/favorites/route.ts`
+  - `src/app/api/library/playlist/route.ts`
+  - `src/app/api/library/playlist/items/route.ts`
+  - `src/app/api/library/playlist/items/reorder/route.ts`
+- Added auth/library data stores:
+  - `src/lib/auth.ts`
+  - `src/lib/userLibraryStore.js`
+- Added migration script:
+  - `scripts/migrate-logs-to-user.mjs`
+  - Added npm script `migrate:logs:user`
+
+### Changed
+- Updated `src/lib/playbackLogs.js`
+  - Added `user_id` support and user-scoped stats filtering
+- Updated `src/app/api/playback/log/route.ts`
+  - Unauthenticated playback logs now return `204` (not persisted)
+  - Authenticated playback logs are persisted with `user_id`
+- Updated `src/app/api/playback/stats/route.ts`
+  - Supports user-scoped stats using auth cookie
+- Updated `src/components/GlobalPlayer.tsx`
+  - Added auth-aware favorites and "later queue" controls
+  - Playlist panel now reads/writes user playlist data
+- Updated `src/app/player/[album]/page.tsx`
+  - Added "稍后播" action per song row (auth-aware)
+- Updated `src/app/page.tsx`
+  - Added login/logout entry in top header
+  - Removed album cover direct-play trigger to avoid mobile mis-taps
+- Updated mobile UI density:
+  - `src/app/player/[album]/page.tsx` (smaller hero on narrow screens)
+  - `src/components/Lyrics.tsx` and `src/components/Lyrics.module.css` (smaller mobile lyrics and tighter spacing)
+
+### Data Migration
+- Ran log ownership migration:
+  - Target user: `1762161822@qq.com` (role: `admin`)
+  - Migrated all existing logs to that user
+  - Remaining `NULL user_id`: `0`
+
+### Verified
+- `npm run test:run` (16 tests passed)
+- `npm run build` (pass)
